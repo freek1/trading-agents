@@ -28,7 +28,7 @@ def able_to_take_resource(agent, chosen_resource, resources):
 pygame.init()
 clock = pygame.time.Clock()
 dt = 0
-fps = 1
+fps = 10
 time = 1
 
 # Set the dimensions of the screen
