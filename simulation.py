@@ -3,26 +3,84 @@ import random
 import numpy as np
 
 def draw_rect_alpha(surface, color, rect):
+    ''' Draws a rectangle with an alpha channel
+    Input: 
+        surface: object
+        color: tuple, RGB
+        rect: tuple, (x, y, w, h)
+    Output:
+        None
+    '''
     shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
     pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
     surface.blit(shape_surf, rect)
 
 def pos_agent(agent):
+    ''' Returns y, x position tuple of the agent
+    Input: 
+        agent: object
+    Output:
+        y: int, y-pos
+        x: int, x-pos
+    '''
     x = agent['x']
     y = agent['y']
     return (y, x)
 
 def choose_resource(agent, resources):
+    ''' Returns a random resource from the list of resources
+    Input: 
+        agent: object
+        resources: dict
+    Output:
+        chosen_resource: string, name of chosen resource
+    '''
     return list(resources.keys())[np.random.choice(len(resources), p=agent['predispostion'])]
 
 def take_resource(agent, chosen_resource, resources):
+    ''' Takes a resource from the chosen resource
+    Input: 
+        agent: object
+        chosen_resource: string, name of chosen resource
+        resources: dict
+    Output:
+        None
+    '''
     y, x = pos_agent(agent)
     agent['current_stock'][f'{chosen_resource}'] += 1
     resources[chosen_resource][y][x] -= 1
     agent['gathered_resource_backlog'].append(chosen_resource)
 
 def able_to_take_resource(agent, chosen_resource, resources):
+    ''' Checks if the agent is able to take a resource
+    Input: 
+        agent: object
+        chosen_resource: string, name of chosen resource
+        resources: dict
+    Output:
+        bool, True if able to take resource, False if not
+    '''
     return agent[f'{chosen_resource}_capacity'] > agent['current_stock'][f'{chosen_resource}'] and resources[chosen_resource][y][x] >= 1
+
+def move_towards_goal(agent):
+    ''' Returns next y,x positions for agent towards goal
+    Input: 
+        agent: object
+    Output:
+        y: int, next agent pos y (in direction of goal)
+        x: int, next agent pos x (in direction of goal)
+    '''
+    goal_y, goal_x = agent['goal_position']
+    y, x = pos_agent(agent)
+    if goal_y < y:
+        y -= 1
+    elif goal_y > y:
+        y += 1
+    if goal_x < x:
+        x -= 1
+    elif goal_x > x:
+        x += 1
+    return y, x
 
 # Initialize Pygame
 pygame.init()
@@ -100,15 +158,17 @@ for i in range(NUM_AGENTS):
         "id": i,
         'alive' : True,
         "color": agent_colours[i],
-        "wood_capacity":10,
-        "food_capacity":10,
+        "wood_capacity":30,
+        "food_capacity":30,
         "current_stock": {
-            "wood": 0, 
-            "food": 0,
+            "wood": 10, 
+            "food": 10,
         },
         "predispostion": predispotions, 
         "pos_backlog" : [],
         "gathered_resource_backlog" : [],
+        "movement" : "pathfinding", # ["pathfinding", "random"]
+        "goal_position" : (8,8), # y, x
     }
     agents.append(agent)
 
@@ -163,7 +223,7 @@ while running:
             else:
                 agent['gathered_resource_backlog'].append(None)
             
-            # upkeep of agents and check if agent can survive
+            # Upkeep of agents and check if agent can survive
             if time % upkeep_rate == 0:
                 for resource in resources:
                     agent['current_stock'][f'{resource}'] -= upkeep_cost
@@ -171,14 +231,34 @@ while running:
                         agent['alive'] = False
                         pass
             
-            # add position to backlog, before agent moves
+            # Add position to backlog, before agent moves
             agent['pos_backlog'].append((y, x))
 
-            # Move the agent randomly
-            dx = random.randint(-1, 1)
-            dy = random.randint(-1, 1)
-            agent["x"] += dx
-            agent["y"] += dy
+            # Agent 'brain'
+            # Choose when to go for food or wood or trade (set goal pos)
+            if agent['current_stock']['wood'] < 10:
+                agent['movement'] = 'pathfinding'
+                agent['goal_position'] = (1,1) # How does it know where wood is?
+            if agent['current_stock']['food'] < 10:
+                agent['movement'] = 'pathfinding'
+                agent['goal_position'] = (7,7) # How does it know where wood is?
+
+            # Agent movement
+            if agent['movement'] == 'pathfinding':
+                # Move the agent to the goal position
+                y_step, x_step = move_towards_goal(agent)
+                agent["x"] = x_step
+                agent["y"] = y_step
+                # If agent is at goal position, go randomly again
+                if agent['goal_position'][0] == y and agent['goal_position'][1] == x:
+                    agent['movement'] = 'random'
+            elif agent['movement'] == 'random':
+                # Move the agent randomly
+                dx = random.randint(-1, 1)
+                dy = random.randint(-1, 1)
+                agent["x"] += dx
+                agent["y"] += dy
+            
 
             # Keep the agent on the grid
             agent["x"] = max(0, min(GRID_WIDTH - 1, agent["x"]))
