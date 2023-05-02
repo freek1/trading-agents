@@ -1,6 +1,7 @@
 import pygame
 import random
 import numpy as np
+from agent import Agent
 
 def draw_rect_alpha(surface, color, rect):
     ''' Draws a rectangle with an alpha channel
@@ -15,17 +16,17 @@ def draw_rect_alpha(surface, color, rect):
     pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
     surface.blit(shape_surf, rect)
 
-def pos_agent(agent):
-    ''' Returns y, x position tuple of the agent
-    Input: 
-        agent: object
-    Output:
-        y: int, y-pos
-        x: int, x-pos
-    '''
-    x = agent['x']
-    y = agent['y']
-    return (y, x)
+# def pos_agent(agent):
+#     ''' Returns y, x position tuple of the agent
+#     Input: 
+#         agent: object
+#     Output:
+#         y: int, y-pos
+#         x: int, x-pos
+#     '''
+#     x = agent['x']
+#     y = agent['y']
+#     return (y, x)
 
 def choose_resource(agent, resources):
     ''' Returns a random resource from the list of resources
@@ -46,10 +47,13 @@ def take_resource(agent, chosen_resource, resources):
     Output:
         None
     '''
-    y, x = pos_agent(agent)
-    agent['current_stock'][f'{chosen_resource}'] += 1
+    #y, x = pos_agent(agent)
+    y, x = agent.getPos()
+    #agent['current_stock'][f'{chosen_resource}'] += 1
+    agent.updateStock(chosen_resource, 1)
     resources[chosen_resource][y][x] -= 1
-    agent['gathered_resource_backlog'].append(chosen_resource)
+    #agent['gathered_resource_backlog'].append(chosen_resource)
+    agent.addResBacklog(chosen_resource)
 
 def able_to_take_resource(agent, chosen_resource, resources):
     ''' Checks if the agent is able to take a resource
@@ -62,25 +66,62 @@ def able_to_take_resource(agent, chosen_resource, resources):
     '''
     return agent[f'{chosen_resource}_capacity'] > agent['current_stock'][f'{chosen_resource}'] and resources[chosen_resource][y][x] >= 1
 
-def move_towards_goal(agent):
-    ''' Returns next y,x positions for agent towards goal
-    Input: 
-        agent: object
-    Output:
-        y: int, next agent pos y (in direction of goal)
-        x: int, next agent pos x (in direction of goal)
-    '''
-    goal_y, goal_x = agent['goal_position']
-    y, x = pos_agent(agent)
-    if goal_y < y:
-        y -= 1
-    elif goal_y > y:
-        y += 1
-    if goal_x < x:
-        x -= 1
-    elif goal_x > x:
-        x += 1
-    return y, x
+def find_nearest_resource(agent, resource):
+    y_agent, x_agent = pos_agent(agent)
+    closest_loc = (-np.inf, -np.inf)
+    closest_dist = np.inf
+    for y in range(GRID_HEIGHT):
+        for x in range(GRID_WIDTH):
+            if resources[resource][y][x]>=1:
+                if math.dist((y_agent, x_agent), (y, x))<closest_dist:
+                    closest_dist = math.dist((y_agent, x_agent), (y, x))
+                    closest_loc = y, x
+    return closest_loc
+
+def cellAvailable(x, y):
+    for agent in agents:
+        if agent.isAt(x, y):
+            return False
+    return True
+
+def moveAgent(preferred_direction):
+    # move agent to preferred direction if possible, otherwise move randomly
+    y, x = agent.getPos()
+    dy, dx = preferred_direction
+    new_x = x
+    new_y = y
+    if 0 <= x+dx < GRID_WIDTH:
+        new_x += dx
+    if 0 <= y+dy < GRID_HEIGHT:
+        new_y += dy
+    if cellAvailable(new_x, new_y):
+        agent.move(dy, dx)
+    else:
+        found = False # available grid cell found
+        possible_moves = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
+        possible_moves.remove((0,0))
+        while not found and possible_moves:
+            dy,dx = random.choice(possible_moves)
+            possible_moves.remove((dy,dx))
+            new_x = x
+            new_y = y
+            if 0 <= x+dx < GRID_WIDTH:
+                new_x += dx
+            if 0 <= y+dy < GRID_HEIGHT:
+                new_y += dy
+            if cellAvailable(new_x, new_y):
+                agent.move(dy, dx)
+                found = True
+        
+    if True: # TODO: check if cell is occupied/not outside world
+        # Keep the agent on the grid
+        agent["x"] = max(0, min(GRID_WIDTH - 1, agent["x"]))
+        agent["y"] = max(0, min(GRID_HEIGHT - 1, agent["y"]))
+        agent.move(dy, dx)
+    else:
+        pass
+        # TODO: move randomly to available cell
+    
 
 # Initialize Pygame
 pygame.init()
@@ -151,25 +192,25 @@ for i in range(NUM_AGENTS):
     for j in range(len(resources)):
         predispotions = np.random.random(len(resources))
         predispotions /= predispotions.sum()
-
-    agent = {
-        "x": random.randint(0, GRID_WIDTH-1),
-        "y": random.randint(0, GRID_HEIGHT-1),
-        "id": i,
-        'alive' : True,
-        "color": agent_colours[i],
-        "wood_capacity":30,
-        "food_capacity":30,
-        "current_stock": {
-            "wood": 10, 
-            "food": 10,
-        },
-        "predispostion": predispotions, 
-        "pos_backlog" : [],
-        "gathered_resource_backlog" : [],
-        "movement" : "pathfinding", # ["pathfinding", "random"]
-        "goal_position" : (8,8), # y, x
-    }
+    # agent = {
+    #     "x": random.randint(0, GRID_WIDTH-1),
+    #     "y": random.randint(0, GRID_HEIGHT-1),
+    #     "id": i,
+    #     'alive' : True,
+    #     "color": agent_colours[i],
+    #     "wood_capacity":30,
+    #     "food_capacity":30,
+    #     "current_stock": {
+    #         "wood": 10, 
+    #         "food": 10,
+    #     },
+    #     "predispostion": predispotions, 
+    #     "pos_backlog" : [],
+    #     "gathered_resource_backlog" : [],
+    #     "movement" : "pathfinding", # ["pathfinding", "random"]
+    #     "goal_position" : (8,8), # y, x
+    # }
+    agent = Agent(i, agent_colours[i], predispotions, GRID_WIDTH, GRID_HEIGHT)
     agents.append(agent)
 
 # Run the simulation
@@ -211,66 +252,43 @@ while running:
 
     # Update the agents
     for agent in agents:
-        if agent['alive']==True:
-            rect = pygame.Rect(agent["x"] * CELL_SIZE, agent["y"] * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            pygame.draw.rect(screen, agent["color"], rect)
+        #if agent['alive']==True:
+        if agent.isAlive():
+            y, x = agent.getPos()
+            rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+            #pygame.draw.rect(screen, agent["color"], rect)
+            pygame.draw.rect(screen, agent.getColor(), rect)
 
             # Update the resource gathering
-            y, x = pos_agent(agent)
             chosen_resource =  choose_resource(agent, resources) # make agent choose which resource to gather based on it's predisposition
             if able_to_take_resource(agent, chosen_resource, resources):
                 take_resource(agent, chosen_resource, resources)
             else:
-                agent['gathered_resource_backlog'].append(None)
+                #agent['gathered_resource_backlog'].append(None)
+                agent.addResBacklog(None)
             
             # Upkeep of agents and check if agent can survive
             if time % upkeep_rate == 0:
                 for resource in resources:
-                    agent['current_stock'][f'{resource}'] -= upkeep_cost
-                    if agent['current_stock'][f'{resource}'] < 0:
-                        agent['alive'] = False
-                        pass
+                    agent.upkeep()
+                    # agent['current_stock'][f'{resource}'] -= upkeep_cost
+                    # if agent['current_stock'][f'{resource}'] < 0:
+                    #     agent['alive'] = False
+                    #     pass
             
             # Add position to backlog, before agent moves
-            agent['pos_backlog'].append((y, x))
+            #agent['pos_backlog'].append((y, x))
+            agent.addPosBacklog((y, x))
 
-            # Agent brain
-            # Choose when to go for food or wood or trade (set goal pos)
-            if agent['current_stock']['wood'] < 10:
-                agent['movement'] = 'pathfinding'
-                agent['goal_position'] = (1,1)  # How does it know where wood is?
-                                                # - Make goal location a radius
-                                                # - Implement that agents cannot be on the same square 
-                                                #       - What to do when the goal is the same square? Go one next to it?
-            if agent['current_stock']['food'] < 10:
-                agent['movement'] = 'pathfinding'
-                agent['goal_position'] = (7,7) # How does it know where food is?
+            # Choose behaviour
+            agent.updateBehaviour() # Agent brain
+            preferred_direction = agent.chooseStep()
+            moveAgent(preferred_direction)
 
-            # Agent movement
-            if agent['movement'] == 'pathfinding':
-                # Move the agent to the goal position
-                y_step, x_step = move_towards_goal(agent)
-                agent["x"] = x_step
-                agent["y"] = y_step
-                # If agent is at goal position, go randomly again
-                if agent['goal_position'][0] == y and agent['goal_position'][1] == x:
-                    agent['movement'] = 'random'
-            elif agent['movement'] == 'random':
-                # Move the agent randomly
-                dx = random.randint(-1, 1)
-                dy = random.randint(-1, 1)
-                agent["x"] += dx
-                agent["y"] += dy
-            
-
-            # Keep the agent on the grid
-            agent["x"] = max(0, min(GRID_WIDTH - 1, agent["x"]))
-            agent["y"] = max(0, min(GRID_HEIGHT - 1, agent["y"]))
-
-
+# TODO: update using Agent class
             # regenerate resources on the field based on the backlog of the agents
-            if len(agent["pos_backlog"])>=regen_rate and regen_active:
-                if (agent['gathered_resource_backlog'][0])!=None:
+            if len(agent["pos_backlog"]) >= regen_rate and regen_active:
+                if (agent['gathered_resource_backlog'][0]) != None:
                     y, x = agent['pos_backlog'][0]
                     regen_resource = agent['gathered_resource_backlog'][0]
                     resources[regen_resource][y][x] += 1
