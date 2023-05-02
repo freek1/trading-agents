@@ -57,6 +57,19 @@ GRID_HEIGHT = SCREEN_HEIGHT // CELL_SIZE
 wood = [[random.uniform(0, 10) for x in range(GRID_WIDTH)] for y in range(GRID_HEIGHT)]
 food = [[random.uniform(0, 10) for x in range(GRID_WIDTH)] for y in range(GRID_HEIGHT)]
 
+# Wood and food in non-random positions
+wood = np.zeros((GRID_HEIGHT, GRID_WIDTH))
+for i in range(GRID_HEIGHT):
+    for j in range(GRID_WIDTH):
+        if i in [0,1,2,3] and j in [0,1,2,3]:
+            wood[i][j] = random.uniform(0, 10)
+
+food = np.zeros((GRID_HEIGHT, GRID_WIDTH))
+for i in range(GRID_HEIGHT):
+    for j in range(GRID_WIDTH):
+        if i in [5,6,7,8] and j in [5,6,7,8]:
+            food[i][j] = random.uniform(0, 10)
+
 resources = {
     'wood': wood,
     'food': food,
@@ -121,9 +134,9 @@ while running:
             food_color = DARK_GREEN if food_value > 7.5 else LIGHT_GREEN if food_value > 5 else GREEN if food_value > 1 else WHITE
 
             blended_color = (
-                int((wood_color[0] * wood_value + food_color[0] * food_value) / (wood_value + food_value)),
-                int((wood_color[1] * wood_value + food_color[1] * food_value) / (wood_value + food_value)),
-                int((wood_color[2] * wood_value + food_color[2] * food_value) / (wood_value + food_value)),
+                int((wood_color[0] * wood_value + food_color[0] * food_value) / (wood_value + food_value + 1)), # I added +1 to prevent / 0 errors
+                int((wood_color[1] * wood_value + food_color[1] * food_value) / (wood_value + food_value + 1)),
+                int((wood_color[2] * wood_value + food_color[2] * food_value) / (wood_value + food_value + 1)),
                 int(max(wood_value, food_value)*25)
             ) 
             rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
