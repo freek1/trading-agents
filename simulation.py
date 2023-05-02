@@ -234,14 +234,16 @@ while running:
             # Add position to backlog, before agent moves
             agent['pos_backlog'].append((y, x))
 
-            # Agent 'brain'
+            # Agent brain
             # Choose when to go for food or wood or trade (set goal pos)
             if agent['current_stock']['wood'] < 10:
                 agent['movement'] = 'pathfinding'
-                agent['goal_position'] = (1,1) # How does it know where wood is?
+                agent['goal_position'] = (1,1)  # How does it know where wood is?
+                                                # - Make goal location a radius
+                                                # - Implement that agents cannot be on the same square
             if agent['current_stock']['food'] < 10:
                 agent['movement'] = 'pathfinding'
-                agent['goal_position'] = (7,7) # How does it know where wood is?
+                agent['goal_position'] = (7,7) # How does it know where food is?
 
             # Agent movement
             if agent['movement'] == 'pathfinding':
