@@ -240,7 +240,8 @@ while running:
                 agent['movement'] = 'pathfinding'
                 agent['goal_position'] = (1,1)  # How does it know where wood is?
                                                 # - Make goal location a radius
-                                                # - Implement that agents cannot be on the same square
+                                                # - Implement that agents cannot be on the same square 
+                                                #       - What to do when the goal is the same square? Go one next to it?
             if agent['current_stock']['food'] < 10:
                 agent['movement'] = 'pathfinding'
                 agent['goal_position'] = (7,7) # How does it know where food is?
