@@ -1,6 +1,7 @@
 import pygame
 import random
 import numpy as np
+import math
 from agent import Agent
 
 def draw_rect_alpha(surface, color, rect):
@@ -36,7 +37,7 @@ def choose_resource(agent, resources):
     Output:
         chosen_resource: string, name of chosen resource
     '''
-    return list(resources.keys())[np.random.choice(len(resources), p=agent['predispostion'])]
+    return list(resources.keys())[np.random.choice(len(resources), p=agent.getPredisposition())]
 
 def take_resource(agent, chosen_resource, resources):
     ''' Takes a resource from the chosen resource
@@ -64,10 +65,11 @@ def able_to_take_resource(agent, chosen_resource, resources):
     Output:
         bool, True if able to take resource, False if not
     '''
-    return agent[f'{chosen_resource}_capacity'] > agent['current_stock'][f'{chosen_resource}'] and resources[chosen_resource][y][x] >= 1
+    y,x = agent.getPos()
+    return agent.getCapacity(chosen_resource) > agent.getCurrentStock(chosen_resource) and resources[chosen_resource][y][x] >= 1
 
 def find_nearest_resource(agent, resource):
-    y_agent, x_agent = pos_agent(agent)
+    y_agent, x_agent = agent.getPos()
     closest_loc = (-np.inf, -np.inf)
     closest_dist = np.inf
     for y in range(GRID_HEIGHT):
@@ -115,8 +117,10 @@ def moveAgent(preferred_direction):
         
     if True: # TODO: check if cell is occupied/not outside world
         # Keep the agent on the grid
-        agent["x"] = max(0, min(GRID_WIDTH - 1, agent["x"]))
-        agent["y"] = max(0, min(GRID_HEIGHT - 1, agent["y"]))
+        y, x = agent.getPos()
+        y_n = max(0, min(GRID_WIDTH - 1, x))
+        x_n = max(0, min(GRID_HEIGHT - 1, y))
+        agent.setPos(y_n, x_n)
         agent.move(dy, dx)
     else:
         pass
@@ -287,13 +291,17 @@ while running:
 
 # TODO: update using Agent class
             # regenerate resources on the field based on the backlog of the agents
-            if len(agent["pos_backlog"]) >= regen_rate and regen_active:
-                if (agent['gathered_resource_backlog'][0]) != None:
-                    y, x = agent['pos_backlog'][0]
-                    regen_resource = agent['gathered_resource_backlog'][0]
+            pos_backlog = agent.getPosBacklog()
+            res_backlog = agent.getResBacklog()
+            if len(pos_backlog) >= regen_rate and regen_active:
+                if (res_backlog) != None:
+                    y, x = pos_backlog[0]
+                    regen_resource = res_backlog[0]
                     resources[regen_resource][y][x] += 1
-                agent['pos_backlog'].pop(0)
-                agent['gathered_resource_backlog'].pop(0)
+                pos_backlog.pop(0)
+                res_backlog.pop(0)
+            agent.setPosBacklog(pos_backlog)
+            agent.setResBacklog(res_backlog)
 
     
     # Update the display

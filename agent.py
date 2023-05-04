@@ -1,7 +1,7 @@
 import random
 
 class Agent:
-    def __init__(self, id, color, predispotions, GRID_WIDTH, GRID_HEIGHT):
+    def __init__(self, id, color, predispositions, GRID_WIDTH, GRID_HEIGHT):
         self.x = random.randint(0, GRID_WIDTH-1)
         self.y = random.randint(0, GRID_HEIGHT-1)
         self.id = id
@@ -17,7 +17,7 @@ class Agent:
             "wood": 1,
             "food": 1,
         }
-        self.predispostion = predispotions
+        self.predisposition = predispositions
         self.pos_backlog = []
         self.gathered_resource_backlog = []
         self.movement = "pathfinding"  # ["pathfinding", "random"]
@@ -40,7 +40,7 @@ class Agent:
             # self.movement = 'trade'
     
     def chooseStep(self) -> tuple[int,int]:
-        dx, dy = 0
+        dx, dy = 0, 0
         if self.movement == 'pathfinding':
             goal_y, goal_x = self.goal_position
             if goal_y < self.y:
@@ -60,14 +60,26 @@ class Agent:
         self.y += dy
         self.x += dx
 
+    def getResBacklog(self):
+        return self.gathered_resource_backlog
+
     def addResBacklog(self, resource):
         self.gathered_resource_backlog.append(resource)
 
+    def setResBacklog(self, res_backlog):
+        self.res_backlog = res_backlog
+
+    def getPosBacklog(self):
+        return self.pos_backlog
+    
     def addPosBacklog(self, pos):
         self.pos_backlog.append(pos)
+
+    def setPosBacklog(self, pos_backlog):
+        self.pos_backlog = pos_backlog
     
     def upkeep(self):
-        for resource in self.current_stock.keys:
+        for resource in self.current_stock.keys():
             self.current_stock[resource] -= self.upkeepCost[resource]
             if self.current_stock[resource] < 0:
                 self.alive = False
@@ -81,8 +93,24 @@ class Agent:
     def getPos(self):
         return self.y, self.x
     
+    def getPredisposition(self):
+        return self.predisposition
+    
     def getColor(self):
         return self.color
         
     def isAlive(self):
         return self.alive
+    
+    def getCapacity(self, chosen_resource):
+        if chosen_resource == 'wood':
+            return self.wood_capacity
+        elif chosen_resource == 'food':
+            return self.food_capacity
+        
+    def getCurrentStock(self, chosen_resource):
+        return self.current_stock[chosen_resource]
+    
+    def setPos(self, y, x):
+        self.y = y
+        self.x = x
