@@ -1,7 +1,9 @@
 import random
 
+resources = ['wood', 'food']
+
 class Agent:
-    def __init__(self, id, color, predispositions, GRID_WIDTH, GRID_HEIGHT):
+    def __init__(self, id, color, predispositions, specialization, GRID_WIDTH, GRID_HEIGHT):
         self.x = random.randint(0, GRID_WIDTH-1)
         self.y = random.randint(0, GRID_HEIGHT-1)
         self.id = id
@@ -18,6 +20,7 @@ class Agent:
             "food": 1,
         }
         self.predisposition = predispositions
+        self.specialization = specialization
         self.pos_backlog = []
         self.gathered_resource_backlog = []
         self.movement = "pathfinding"  # ["pathfinding", "random"]
@@ -39,7 +42,7 @@ class Agent:
             # TODO: trade?
             # self.movement = 'trade'
     
-    def chooseStep(self) -> tuple[int,int]:
+    def chooseStep(self):
         dx, dy = 0, 0
         if self.movement == 'pathfinding':
             goal_y, goal_x = self.goal_position
@@ -54,7 +57,7 @@ class Agent:
         elif self.movement == 'random':
             dx = random.randint(-1, 1)
             dy = random.randint(-1, 1)
-        return dx, dy
+        return dy, dx
     
     def move(self, dy, dx):
         self.y += dy
@@ -84,8 +87,8 @@ class Agent:
             if self.current_stock[resource] < 0:
                 self.alive = False
         
-    def updateStock(self, chosen_resource, amount):
-        self.current_stock[chosen_resource] += amount
+    def updateStock(self, chosen_resource):
+        self.current_stock[chosen_resource] += self.getSpecificSpecialization(chosen_resource) # calculates amount based on specialization
     
     def isAt(self, x, y):
         return self.x == x and self.y == y
@@ -114,3 +117,6 @@ class Agent:
     def setPos(self, y, x):
         self.y = y
         self.x = x
+
+    def getSpecificSpecialization(self, resource):
+        return self.specialization[resources.index(resource)]

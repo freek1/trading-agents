@@ -39,7 +39,7 @@ def choose_resource(agent, resources):
     '''
     return list(resources.keys())[np.random.choice(len(resources), p=agent.getPredisposition())]
 
-def take_resource(agent, chosen_resource, resources):
+def take_resource(agent: Agent, chosen_resource, resources):
     ''' Takes a resource from the chosen resource
     Input: 
         agent: object
@@ -48,12 +48,10 @@ def take_resource(agent, chosen_resource, resources):
     Output:
         None
     '''
-    #y, x = pos_agent(agent)
     y, x = agent.getPos()
-    #agent['current_stock'][f'{chosen_resource}'] += 1
-    agent.updateStock(chosen_resource, 1)
-    resources[chosen_resource][y][x] -= 1
-    #agent['gathered_resource_backlog'].append(chosen_resource)
+    agent.updateStock(chosen_resource) 
+    
+    resources[chosen_resource][y][x] -= agent.getSpecificSpecialization(chosen_resource)
     agent.addResBacklog(chosen_resource)
 
 def able_to_take_resource(agent, chosen_resource, resources):
@@ -65,7 +63,7 @@ def able_to_take_resource(agent, chosen_resource, resources):
     Output:
         bool, True if able to take resource, False if not
     '''
-    y,x = agent.getPos()
+    y, x = agent.getPos()
     return agent.getCapacity(chosen_resource) > agent.getCurrentStock(chosen_resource) and resources[chosen_resource][y][x] >= 1
 
 def find_nearest_resource(agent, resource):
@@ -90,14 +88,12 @@ def moveAgent(preferred_direction):
     # move agent to preferred direction if possible, otherwise move randomly
     y, x = agent.getPos()
     dy, dx = preferred_direction
-    new_x = x
-    new_y = y
-    if 0 <= x+dx < GRID_WIDTH:
-        new_x += dx
-    if 0 <= y+dy < GRID_HEIGHT:
-        new_y += dy
-    if cellAvailable(new_x, new_y):
-        agent.move(dy, dx)
+    if 0 <= x+dx < GRID_WIDTH and  0 <= y+dy < GRID_HEIGHT:
+        new_x = x + dx
+        new_y = y + dy
+        if cellAvailable(new_x, new_y):
+            agent.move(dy, dx)
+
     else:
         found = False # available grid cell found
         possible_moves = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
@@ -105,26 +101,23 @@ def moveAgent(preferred_direction):
         while not found and possible_moves:
             dy,dx = random.choice(possible_moves)
             possible_moves.remove((dy,dx))
-            new_x = x
-            new_y = y
-            if 0 <= x+dx < GRID_WIDTH:
-                new_x += dx
-            if 0 <= y+dy < GRID_HEIGHT:
-                new_y += dy
-            if cellAvailable(new_x, new_y):
-                agent.move(dy, dx)
-                found = True
-        
-    if True: # TODO: check if cell is occupied/not outside world
-        # Keep the agent on the grid
-        y, x = agent.getPos()
-        y_n = max(0, min(GRID_WIDTH - 1, x))
-        x_n = max(0, min(GRID_HEIGHT - 1, y))
-        agent.setPos(y_n, x_n)
-        agent.move(dy, dx)
-    else:
-        pass
-        # TODO: move randomly to available cell
+            if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
+                new_x = x + dx
+                new_y = y + dy
+                if cellAvailable(new_x, new_y):
+                    agent.move(dy, dx)
+                    found = True
+            
+    # if True: # TODO: check if cell is occupied/not outside world
+    #     # Keep the agent on the grid
+    #     y, x = agent.getPos()
+    #     y_n = max(0, min(GRID_WIDTH - 1, x))
+    #     x_n = max(0, min(GRID_HEIGHT - 1, y))
+    #     agent.setPos(y_n, x_n)
+    #     agent.move(dy, dx)
+    # else:
+    #     pass
+    #     # TODO: move randomly to available cell
     
 
 # Initialize Pygame
@@ -157,8 +150,8 @@ CELL_SIZE = 80
 GRID_WIDTH = SCREEN_WIDTH // CELL_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // CELL_SIZE
 
-wood = [[random.uniform(0, 10) for x in range(GRID_WIDTH)] for y in range(GRID_HEIGHT)]
-food = [[random.uniform(0, 10) for x in range(GRID_WIDTH)] for y in range(GRID_HEIGHT)]
+# wood = [[random.uniform(0, 10) for x in range(GRID_WIDTH)] for y in range(GRID_HEIGHT)]
+# food = [[random.uniform(0, 10) for x in range(GRID_WIDTH)] for y in range(GRID_HEIGHT)]
 
 # Wood and food in non-random positions
 wood = np.zeros((GRID_HEIGHT, GRID_WIDTH))
@@ -185,7 +178,7 @@ agent_colours = [RED, BLUE]
 
 regen_rate = 5
 regen_amount = 1
-regen_active = False
+regen_active = True
 
 upkeep_rate = 5
 upkeep_cost = 1
@@ -193,28 +186,13 @@ upkeep_cost = 1
 
 for i in range(NUM_AGENTS):
     # create predispotion for resources 
-    for j in range(len(resources)):
-        predispotions = np.random.random(len(resources))
-        predispotions /= predispotions.sum()
-    # agent = {
-    #     "x": random.randint(0, GRID_WIDTH-1),
-    #     "y": random.randint(0, GRID_HEIGHT-1),
-    #     "id": i,
-    #     'alive' : True,
-    #     "color": agent_colours[i],
-    #     "wood_capacity":30,
-    #     "food_capacity":30,
-    #     "current_stock": {
-    #         "wood": 10, 
-    #         "food": 10,
-    #     },
-    #     "predispostion": predispotions, 
-    #     "pos_backlog" : [],
-    #     "gathered_resource_backlog" : [],
-    #     "movement" : "pathfinding", # ["pathfinding", "random"]
-    #     "goal_position" : (8,8), # y, x
-    # }
-    agent = Agent(i, agent_colours[i], predispotions, GRID_WIDTH, GRID_HEIGHT)
+    predispotions = np.random.uniform(0.4, 0.6, len(resources)) # probability of chosing that particular resource
+    predispotions /= predispotions.sum()
+    print(predispotions)
+    specialization = np.random.uniform(1, 3, len(resources)) # multiplier
+
+
+    agent = Agent(i, agent_colours[i], predispotions, specialization, GRID_WIDTH, GRID_HEIGHT)
     agents.append(agent)
 
 # Run the simulation
@@ -275,13 +253,8 @@ while running:
             if time % upkeep_rate == 0:
                 for resource in resources:
                     agent.upkeep()
-                    # agent['current_stock'][f'{resource}'] -= upkeep_cost
-                    # if agent['current_stock'][f'{resource}'] < 0:
-                    #     agent['alive'] = False
-                    #     pass
             
             # Add position to backlog, before agent moves
-            #agent['pos_backlog'].append((y, x))
             agent.addPosBacklog((y, x))
 
             # Choose behaviour
@@ -294,10 +267,10 @@ while running:
             pos_backlog = agent.getPosBacklog()
             res_backlog = agent.getResBacklog()
             if len(pos_backlog) >= regen_rate and regen_active:
-                if (res_backlog) != None:
+                if (res_backlog[0]) != None:
                     y, x = pos_backlog[0]
                     regen_resource = res_backlog[0]
-                    resources[regen_resource][y][x] += 1
+                    resources[regen_resource][y][x] += 1*agent.getSpecificSpecialization(regen_resource) # TODO create backlog for specialization, so this can be calculated based on the specialization on the timestep in the past
                 pos_backlog.pop(0)
                 res_backlog.pop(0)
             agent.setPosBacklog(pos_backlog)
@@ -310,6 +283,7 @@ while running:
     clock.tick(fps)
     dt = clock.tick(fps)/100
     time += 1
+    
 
 # Clean up
 pygame.quit()
