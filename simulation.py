@@ -17,18 +17,6 @@ def draw_rect_alpha(surface, color, rect):
     pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
     surface.blit(shape_surf, rect)
 
-# def pos_agent(agent):
-#     ''' Returns y, x position tuple of the agent
-#     Input: 
-#         agent: object
-#     Output:
-#         y: int, y-pos
-#         x: int, x-pos
-#     '''
-#     x = agent['x']
-#     y = agent['y']
-#     return (y, x)
-
 def choose_resource(agent, resources):
     ''' Returns a random resource from the list of resources
     Input: 
@@ -107,18 +95,7 @@ def moveAgent(preferred_direction):
                 if cellAvailable(new_x, new_y):
                     agent.move(dy, dx)
                     found = True
-            
-    # if True: # TODO: check if cell is occupied/not outside world
-    #     # Keep the agent on the grid
-    #     y, x = agent.getPos()
-    #     y_n = max(0, min(GRID_WIDTH - 1, x))
-    #     x_n = max(0, min(GRID_HEIGHT - 1, y))
-    #     agent.setPos(y_n, x_n)
-    #     agent.move(dy, dx)
-    # else:
-    #     pass
-    #     # TODO: move randomly to available cell
-    
+
 
 # Initialize Pygame
 pygame.init()
@@ -158,13 +135,13 @@ wood = np.zeros((GRID_HEIGHT, GRID_WIDTH))
 for i in range(GRID_HEIGHT):
     for j in range(GRID_WIDTH):
         if i in [0,1,2,3] and j in [0,1,2,3]:
-            wood[i][j] = random.uniform(0, 10)
+            wood[i][j] = random.uniform(5, 10)
 
 food = np.zeros((GRID_HEIGHT, GRID_WIDTH))
 for i in range(GRID_HEIGHT):
     for j in range(GRID_WIDTH):
         if i in [5,6,7,8] and j in [5,6,7,8]:
-            food[i][j] = random.uniform(0, 10)
+            food[i][j] = random.uniform(5, 10)
 
 resources = {
     'wood': wood,
@@ -230,13 +207,16 @@ while running:
     for y in range(0, SCREEN_HEIGHT, CELL_SIZE):
         pygame.draw.line(screen, BLACK, (0, y), (SCREEN_WIDTH, y))
 
-
     # Update the agents
     for agent in agents:
         if agent.isAlive():
             y, x = agent.getPos()
             rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(screen, agent.getColor(), rect)
+
+            # Draw wood and food bars
+            agent.wood_bar(screen)
+            agent.food_bar(screen)
 
             # Check in surrounding area (9 cells) for resources
             # And update agent beliefs of their locations

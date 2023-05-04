@@ -1,9 +1,12 @@
 import random
+import pygame
 
 resources = ['wood', 'food']
 
 class Agent:
     def __init__(self, id, color, predispositions, specialization, GRID_WIDTH, GRID_HEIGHT):
+        self.GRID_WIDTH = GRID_WIDTH
+        self.GRID_HEIGHT = GRID_HEIGHT
         self.x = random.randint(0, GRID_WIDTH-1)
         self.y = random.randint(0, GRID_HEIGHT-1)
         self.id = id
@@ -26,8 +29,22 @@ class Agent:
         self.pos_backlog = []
         self.gathered_resource_backlog = []
         self.movement = "random"  # ["pathfinding", "random"]
-        self.goal_position = (8,8)  # y, x
-    
+        self.goal_position = (None, None)  # y, x
+        # For wood and food bars
+        self.bar_length = 200
+        self.bar_ratio_wood = self.wood_capacity / self.bar_length
+        self.bar_ratio_food = self.food_capacity / self.bar_length
+
+    # TODO: make this responsive (SCREEN_WIDTH = 800) or remove
+    def wood_bar(self, screen):    
+        pygame.draw.rect(screen, self.color, (800 - self.bar_length - 10, (self.id * 3) * 10, self.current_stock['wood'] / self.bar_ratio_wood, 25))
+        pygame.draw.rect(screen, (0, 0, 0), (800 - self.bar_length - 10, (self.id * 3) * 10, self.bar_length, 25), 4)
+
+    def food_bar(self, screen):
+        pygame.draw.rect(screen, self.color, (800 - self.bar_length - 10, (self.id * 3) * 10 + 70, self.current_stock['food'] / self.bar_ratio_food, 25))
+        pygame.draw.rect(screen, (0, 0, 0), (800 - self.bar_length - 10, (self.id * 3) * 10 + 70, self.bar_length, 25), 4)
+        
+
     def updateBehaviour(self):
         # If agent has no knowledge of wood or food locations, random walk.
         if len(self.wood_locations) == 0:
@@ -74,7 +91,6 @@ class Agent:
     def addWoodLocation(self, pos):
         if pos not in self.wood_locations:
             self.wood_locations.append(pos)
-            print('Agent', self.id, 'wood locations:', self.wood_locations)
         
     def removeWoodLocation(self, pos):
         if pos in self.wood_locations:
