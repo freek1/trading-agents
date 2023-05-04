@@ -191,7 +191,6 @@ for i in range(NUM_AGENTS):
     print(predispotions)
     specialization = np.random.uniform(1, 3, len(resources)) # multiplier
 
-
     agent = Agent(i, agent_colours[i], predispotions, specialization, GRID_WIDTH, GRID_HEIGHT)
     agents.append(agent)
 
@@ -217,10 +216,10 @@ while running:
             food_color = DARK_GREEN if food_value > 7.5 else LIGHT_GREEN if food_value > 5 else GREEN if food_value > 1 else WHITE
 
             blended_color = (
-                int((wood_color[0] * wood_value + food_color[0] * food_value) / (wood_value + food_value + 1)), # I added +1 to prevent / 0 errors
-                int((wood_color[1] * wood_value + food_color[1] * food_value) / (wood_value + food_value + 1)),
-                int((wood_color[2] * wood_value + food_color[2] * food_value) / (wood_value + food_value + 1)),
-                int(max(wood_value, food_value)*25)
+                max(min(255, int((wood_color[0] * wood_value + food_color[0] * food_value) / (wood_value + food_value + 1))), 0), # I added +1 to prevent / 0 errors
+                max(min(255, int((wood_color[1] * wood_value + food_color[1] * food_value) / (wood_value + food_value + 1))), 0),
+                max(min(255, int((wood_color[2] * wood_value + food_color[2] * food_value) / (wood_value + food_value + 1))), 0),
+                max(min(255, int(max(wood_value, food_value)*25)), 0)
             ) 
             rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
             draw_rect_alpha(screen, blended_color, rect)
@@ -234,15 +233,29 @@ while running:
 
     # Update the agents
     for agent in agents:
-        #if agent['alive']==True:
         if agent.isAlive():
             y, x = agent.getPos()
             rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            #pygame.draw.rect(screen, agent["color"], rect)
             pygame.draw.rect(screen, agent.getColor(), rect)
 
+            # Check in surrounding area (9 cells) for resources
+            # And update agent beliefs of their locations
+            for dy in range(-1, 2):
+                for dx in range(-1, 2):
+                    if y + dy > 0 and y + dy < GRID_HEIGHT and x + dx > 0 and x + dx < GRID_WIDTH:
+                        y_check = (y + dy)
+                        x_check = (x + dx)
+                        if resources['wood'][y_check][x_check] > 0:
+                            agent.addWoodLocation((y_check, x_check))
+                        else: 
+                            agent.removeWoodLocation((y_check, x_check))
+                        if resources['food'][y_check][x_check] > 0:
+                            agent.addFoodLocation((y_check, x_check))
+                        else:
+                            agent.removeFoodLocation((y_check, x_check))
+            
             # Update the resource gathering
-            chosen_resource =  choose_resource(agent, resources) # make agent choose which resource to gather based on it's predisposition
+            chosen_resource = choose_resource(agent, resources) # make agent choose which resource to gather based on it's predisposition
             if able_to_take_resource(agent, chosen_resource, resources):
                 take_resource(agent, chosen_resource, resources)
             else:

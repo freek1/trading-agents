@@ -12,31 +12,43 @@ class Agent:
         self.wood_capacity = 30
         self.food_capacity = 30
         self.current_stock = {
-            "wood": 10,
-            "food": 10,
+            "wood": 15,
+            "food": 15,
         }
         self.upkeepCost = {
             "wood": 1,
             "food": 1,
         }
+        self.wood_locations = [] # [(y_1, x_1), (y_2, x_2), ...] list
+        self.food_locations = []
         self.predisposition = predispositions
         self.specialization = specialization
         self.pos_backlog = []
         self.gathered_resource_backlog = []
-        self.movement = "pathfinding"  # ["pathfinding", "random"]
+        self.movement = "random"  # ["pathfinding", "random"]
         self.goal_position = (8,8)  # y, x
     
     def updateBehaviour(self):
+        # If agent has no knowledge of wood or food locations, random walk.
+        if len(self.wood_locations) == 0:
+            self.movement = 'random'
+        if len(self.food_locations) == 0:
+            self.movement = 'random'
+
         if self.current_stock['wood'] < 10:
-            self.movement = 'pathfinding'
-            self.goal_position = (1,1)
+            # If agent doesnt know a location, random walk.
+            # If he does, pathfind to it
+            if len(self.wood_locations) == 0:
+                self.movement = 'random'
+            else:
+                self.movement = 'pathfinding'
+                self.goal_position = self.wood_locations.pop(0)
         elif self.current_stock['food'] < 10:
-            self.movement = 'pathfinding'
-            self.goal_position = (7,7) # How does it know where food is?
-        # How does it know where wood is?
-        # - Make goal location a radius
-        # - Implement that agents cannot be on the same square 
-        # - What to do when the goal is the same square? Go one next to it?
+            if len(self.food_locations) == 0:
+                self.movement = 'random'
+            else:
+                self.movement = 'pathfinding'
+                self.goal_position = self.food_locations.pop(0)
         else:
             self.movement = 'random'
             # TODO: trade?
@@ -59,6 +71,23 @@ class Agent:
             dy = random.randint(-1, 1)
         return dy, dx
     
+    def addWoodLocation(self, pos):
+        if pos not in self.wood_locations:
+            self.wood_locations.append(pos)
+            print('Agent', self.id, 'wood locations:', self.wood_locations)
+        
+    def removeWoodLocation(self, pos):
+        if pos in self.wood_locations:
+            self.wood_locations.remove(pos)
+
+    def addFoodLocation(self, pos):
+        if pos not in self.food_locations:
+            self.food_locations.append(pos)
+
+    def removeFoodLocation(self, pos):
+        if pos in self.food_locations:
+            self.food_locations.remove(pos)
+
     def move(self, dy, dx):
         self.y += dy
         self.x += dx
