@@ -2,6 +2,7 @@ import pygame
 import random
 import numpy as np
 import math
+import seaborn as sns
 from agent import Agent
 
 def draw_rect_alpha(surface, color, rect):
@@ -37,7 +38,7 @@ def take_resource(agent: Agent, chosen_resource, resources):
         None
     '''
     y, x = agent.getPos()
-    agent.updateStock(chosen_resource) 
+    agent.gatherResource(chosen_resource) 
     
     resources[chosen_resource][y][x] -= agent.getSpecificSpecialization(chosen_resource)
     agent.addResBacklog(chosen_resource)
@@ -67,10 +68,13 @@ def find_nearest_resource(agent, resource):
     return closest_loc
 
 def cellAvailable(x, y):
+    """
+    Returns True and agent if occupied
+    """
     for agent in agents:
         if agent.isAt(x, y):
-            return False
-    return True
+            return (False, agent)
+    return (True, None)
 
 def moveAgent(preferred_direction):
     # move agent to preferred direction if possible, otherwise move randomly
@@ -79,7 +83,7 @@ def moveAgent(preferred_direction):
     if 0 <= x+dx < GRID_WIDTH and  0 <= y+dy < GRID_HEIGHT:
         new_x = x + dx
         new_y = y + dy
-        if cellAvailable(new_x, new_y):
+        if cellAvailable(new_x, new_y)[0]:
             agent.move(dy, dx)
 
     else:
@@ -92,7 +96,7 @@ def moveAgent(preferred_direction):
             if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
                 new_x = x + dx
                 new_y = y + dy
-                if cellAvailable(new_x, new_y):
+                if cellAvailable(new_x, new_y)[0]:
                     agent.move(dy, dx)
                     found = True
 
@@ -121,7 +125,6 @@ LIGHT_GREEN = (102, 204, 102)
 RED  = (255, 25, 25)
 BLUE = (25, 25, 255)
 
-
 # Set up the grid
 CELL_SIZE = 80
 GRID_WIDTH = SCREEN_WIDTH // CELL_SIZE
@@ -149,26 +152,22 @@ resources = {
 }
 
 # Set up the agents
-NUM_AGENTS = 2
+NUM_AGENTS = 8
 agents = []
-agent_colours = [RED, BLUE]
+agent_colours = sns.color_palette('bright', n_colors=NUM_AGENTS)
 
 regen_rate = 5
 regen_amount = 1
 regen_active = True
-
-upkeep_rate = 5
-upkeep_cost = 1
 
 
 for i in range(NUM_AGENTS):
     # create predispotion for resources 
     predispotions = np.random.uniform(0.4, 0.6, len(resources)) # probability of chosing that particular resource
     predispotions /= predispotions.sum()
-    print(predispotions)
     specialization = np.random.uniform(1, 3, len(resources)) # multiplier
 
-    agent = Agent(i, agent_colours[i], predispotions, specialization, GRID_WIDTH, GRID_HEIGHT)
+    agent = Agent(i, np.array(agent_colours[i])*255, predispotions, specialization, GRID_WIDTH, GRID_HEIGHT)
     agents.append(agent)
 
 # Run the simulation
@@ -234,18 +233,36 @@ while running:
                         else:
                             agent.removeFoodLocation((y_check, x_check))
             
+            # Do agent behaviour
+            if agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food':
+                print(f"agent-{agent.getID()} wants to {agent.getBehaviour()}")
+                traded = False
+                neighboring_cells = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
+                neighboring_cells.remove((0,0))
+                while not traded and neighboring_cells:
+                    dy, dx = random.choice(neighboring_cells)
+                    neighboring_cells.remove((dy, dx))
+                    if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
+                        y_check = agent.getPos()[0] + dy
+                        x_check = agent.getPos()[1] + dx
+                        occupied, agent_B = cellAvailable(y_check, x_check)
+                        if agent_B is None:
+                            continue
+                        if agent.compatible(agent_B):
+                            traded_qty = agent.trade(agent_B)
+                            traded = True
+                            print(f"TRADE with {agent_B.getPos()}, qty traded: {traded_qty}")
             # Update the resource gathering
-            chosen_resource = choose_resource(agent, resources) # make agent choose which resource to gather based on it's predisposition
-            if able_to_take_resource(agent, chosen_resource, resources):
-                take_resource(agent, chosen_resource, resources)
             else:
-                #agent['gathered_resource_backlog'].append(None)
-                agent.addResBacklog(None)
+                chosen_resource = choose_resource(agent, resources) # make agent choose which resource to gather based on it's predisposition
+                if able_to_take_resource(agent, chosen_resource, resources):
+                    take_resource(agent, chosen_resource, resources)
+                else:
+                    #agent['gathered_resource_backlog'].append(None)
+                    agent.addResBacklog(None)
             
             # Upkeep of agents and check if agent can survive
-            if time % upkeep_rate == 0:
-                for resource in resources:
-                    agent.upkeep()
+            agent.upkeep()
             
             # Add position to backlog, before agent moves
             agent.addPosBacklog((y, x))
@@ -255,7 +272,6 @@ while running:
             preferred_direction = agent.chooseStep()
             moveAgent(preferred_direction)
 
-# TODO: update using Agent class
             # regenerate resources on the field based on the backlog of the agents
             pos_backlog = agent.getPosBacklog()
             res_backlog = agent.getResBacklog()
