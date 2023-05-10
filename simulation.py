@@ -3,6 +3,7 @@ import random
 import numpy as np
 import math
 import seaborn as sns
+import copy
 from agent import Agent
 
 def draw_rect_alpha(surface, color, rect):
@@ -39,9 +40,8 @@ def take_resource(agent: Agent, chosen_resource, resources):
     '''
     y, x = agent.getPos()
     agent.gatherResource(chosen_resource) 
-    
     resources[chosen_resource][y][x] -= agent.getSpecificSpecialization(chosen_resource)
-    agent.addResBacklog(chosen_resource)
+
 
 def able_to_take_resource(agent, chosen_resource, resources):
     ''' Checks if the agent is able to take a resource
@@ -105,7 +105,7 @@ def moveAgent(preferred_direction):
 pygame.init()
 clock = pygame.time.Clock()
 dt = 0
-fps = 10
+fps = 60
 time = 1
 
 # Set the dimensions of the screen
@@ -126,7 +126,7 @@ RED  = (255, 25, 25)
 BLUE = (25, 25, 255)
 
 # Set up the grid
-CELL_SIZE = 80
+CELL_SIZE = 20
 GRID_WIDTH = SCREEN_WIDTH // CELL_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // CELL_SIZE
 
@@ -146,19 +146,23 @@ for i in range(GRID_HEIGHT):
         if i in [5,6,7,8] and j in [5,6,7,8]:
             food[i][j] = random.uniform(5, 10)
 
-resources = {
+maximum_resources = {
     'wood': wood,
     'food': food,
 }
 
+resources = copy.deepcopy(maximum_resources)
+
 # Set up the agents
-NUM_AGENTS = 8
+NUM_AGENTS = 10
 agents = []
 agent_colours = sns.color_palette('bright', n_colors=NUM_AGENTS)
 
-regen_rate = 5
-regen_amount = 1
+regen_amount = 10
 regen_active = True
+
+transaction_cost = 0.1
+
 
 
 for i in range(NUM_AGENTS):
@@ -235,7 +239,6 @@ while running:
             
             # Do agent behaviour
             if agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food':
-                print(f"agent-{agent.getID()} wants to {agent.getBehaviour()}")
                 traded = False
                 neighboring_cells = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
                 neighboring_cells.remove((0,0))
@@ -249,7 +252,7 @@ while running:
                         if agent_B is None:
                             continue
                         if agent.compatible(agent_B):
-                            traded_qty = agent.trade(agent_B)
+                            traded_qty = agent.trade(agent_B, transaction_cost)
                             traded = True
                             print(f"TRADE with {agent_B.getPos()}, qty traded: {traded_qty}")
             # Update the resource gathering
@@ -257,33 +260,25 @@ while running:
                 chosen_resource = choose_resource(agent, resources) # make agent choose which resource to gather based on it's predisposition
                 if able_to_take_resource(agent, chosen_resource, resources):
                     take_resource(agent, chosen_resource, resources)
-                else:
-                    #agent['gathered_resource_backlog'].append(None)
-                    agent.addResBacklog(None)
             
-            # Upkeep of agents and check if agent can survive
-            agent.upkeep()
-            
-            # Add position to backlog, before agent moves
-            agent.addPosBacklog((y, x))
+                # Upkeep of agents and check if agent can survive
+                agent.upkeep()
+                
 
             # Choose behaviour
             agent.updateBehaviour() # Agent brain
             preferred_direction = agent.chooseStep()
             moveAgent(preferred_direction)
 
-            # regenerate resources on the field based on the backlog of the agents
-            pos_backlog = agent.getPosBacklog()
-            res_backlog = agent.getResBacklog()
-            if len(pos_backlog) >= regen_rate and regen_active:
-                if (res_backlog[0]) != None:
-                    y, x = pos_backlog[0]
-                    regen_resource = res_backlog[0]
-                    resources[regen_resource][y][x] += 1*agent.getSpecificSpecialization(regen_resource) # TODO create backlog for specialization, so this can be calculated based on the specialization on the timestep in the past
-                pos_backlog.pop(0)
-                res_backlog.pop(0)
-            agent.setPosBacklog(pos_backlog)
-            agent.setResBacklog(res_backlog)
+        
+    if regen_active:
+        for maximum_resource in maximum_resources:
+            for row in range(GRID_HEIGHT):
+                for column in range(GRID_WIDTH):
+                    if maximum_resources[maximum_resource][row][column] > resources[maximum_resource][row][column]:
+                        resources[f'{maximum_resource}'][row][column] += regen_amount
+                        
+
 
     
     # Update the display

@@ -30,8 +30,6 @@ class Agent:
         self.food_locations = []
         self.predisposition = predispositions
         self.specialization = specialization
-        self.pos_backlog = []
-        self.gathered_resource_backlog = []
         self.movement = "random"  # "pathfinding" or "random"
         self.behaviour = 'gather'
         self.goal_position = (None, None)  # y, x
@@ -103,7 +101,7 @@ class Agent:
             return True
 
     def trade(self, agent_B, transaction_cost):
-        traded_qty = 0.0
+        traded_quantity = 0.0
         if self.behaviour == 'trade_wood':
             # Sell wood for food
             while not self.tradeFinalized() or agent_B.tradeFinalized():
@@ -111,7 +109,7 @@ class Agent:
                 agent_B.current_stock['wood'] += TRADE_QTY - transaction_cost
                 agent_B.current_stock['food'] -= TRADE_QTY
                 self.current_stock['food'] += TRADE_QTY - transaction_cost
-                traded_qty += TRADE_QTY
+                traded_quantity += TRADE_QTY
         else:
             # Sell food for wood
             while not self.tradeFinalized() or agent_B.tradeFinalized():
@@ -120,6 +118,7 @@ class Agent:
                 agent_B.current_stock['wood'] -= TRADE_QTY
                 self.current_stock['wood'] += TRADE_QTY - transaction_cost
                 traded_quantity += TRADE_QTY
+        print(traded_quantity)        
         return traded_quantity
     
     def tradeFinalized(self):
@@ -148,24 +147,6 @@ class Agent:
         self.y += dy
         self.x += dx
 
-    def getResBacklog(self):
-        return self.gathered_resource_backlog
-
-    def addResBacklog(self, resource):
-        self.gathered_resource_backlog.append(resource)
-
-    def setResBacklog(self, res_backlog):
-        self.res_backlog = res_backlog
-
-    def getPosBacklog(self):
-        return self.pos_backlog
-    
-    def addPosBacklog(self, pos):
-        self.pos_backlog.append(pos)
-
-    def setPosBacklog(self, pos_backlog):
-        self.pos_backlog = pos_backlog
-    
     def upkeep(self):
         for resource in self.current_stock.keys():
             self.current_stock[resource] -= self.upkeep_cost[resource]
