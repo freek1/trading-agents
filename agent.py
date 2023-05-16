@@ -3,9 +3,9 @@ import pygame
 
 resources = ['wood', 'food']
 RANDOM_AGENTS = True
-TRADE_THRESHOLD = 1.2
+TRADE_THRESHOLD = 1.5
 TRADE_QTY = 1.0
-UPKEEP_COST = 0.0
+UPKEEP_COST = 0.2
 
 class Agent:
     def __init__(self, id, x, y, color, predispositions, specialization, GRID_WIDTH, GRID_HEIGHT):
@@ -16,6 +16,7 @@ class Agent:
         self.id = id
         self.alive = True
         self.color = color
+        self.time_alive = 0
         self.wood_capacity = 30
         self.food_capacity = 30
         self.current_stock = {
@@ -47,6 +48,14 @@ class Agent:
         pygame.draw.rect(screen, self.color, (800 - self.bar_length - 10, (self.id * 3) * 10 + 70, self.current_stock['food'] / self.bar_ratio_food, 25))
         pygame.draw.rect(screen, (0, 0, 0), (800 - self.bar_length - 10, (self.id * 3) * 10 + 70, self.bar_length, 25), 4)
         
+    def update_time_alive(self):
+        self.time_alive += 1
+
+    def get_time_alive(self):
+        return self.time_alive
+    
+    def set_movement(self, movement):
+        self.movement = movement
 
     def updateBehaviour(self):
         # If agent has no knowledge of wood or food locations, random walk.
@@ -71,12 +80,17 @@ class Agent:
                 self.movement = 'random'
                 # TODO: trade?
                 # self.movement = 'trade'
+
         # Update gather/trade behaviour
-        if self.current_stock['wood']/self.current_stock['food'] > TRADE_THRESHOLD:
+        ratio = self.current_stock['wood']/self.current_stock['food']
+        if ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
+            self.movement = 'stay'
             self.behaviour = 'trade_wood' # means selling wood
-        elif self.current_stock['food']/self.current_stock['wood'] > TRADE_THRESHOLD:
+        elif 1/ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
+            self.movement = 'stay'
             self.behaviour = 'trade_food' # means selling food
-        else: self.behaviour = 'gather'
+        else: 
+            self.behaviour = 'gather'
     
     def chooseStep(self):
         dx, dy = 0, 0
@@ -93,6 +107,9 @@ class Agent:
         elif self.movement == 'random':
             dx = random.randint(-1, 1)
             dy = random.randint(-1, 1)
+        elif self.movement == 'stay':
+            dx = 0
+            dy = 0
         return dx, dy
     
     def compatible(self, agent_B):
@@ -103,7 +120,7 @@ class Agent:
     def trade(self, agent_B, transaction_cost):
         traded_quantity = 0.0
         if self.behaviour == 'trade_wood':
-            # Sell wood for food
+            # Sell wood for food 
             while not (self.tradeFinalized() or agent_B.tradeFinalized()):
                 self.current_stock['wood'] -= TRADE_QTY
                 agent_B.current_stock['wood'] += TRADE_QTY - transaction_cost
@@ -118,11 +135,15 @@ class Agent:
                 agent_B.current_stock['wood'] -= TRADE_QTY
                 self.current_stock['wood'] += TRADE_QTY - transaction_cost
                 traded_quantity += TRADE_QTY
-        print(traded_quantity)        
+        
+        if RANDOM_AGENTS:
+            self.movement == 'random'
+            agent_B.set_movement('random')
+            
         return traded_quantity
     
     def tradeFinalized(self):
-        # Finalize trade if resource equilibrium is reached (diff < TRADE_QTY/2)
+        # Finalize trade if resource equilibrium is reached (diff < TRADE_QTY)
         return abs(self.current_stock['wood'] - self.current_stock['food']) <= TRADE_QTY
 
     def addWoodLocation(self, pos):
