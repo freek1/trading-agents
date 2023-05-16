@@ -231,8 +231,8 @@ while running:
             pygame.draw.rect(screen, agent.getColor(), rect)
 
             # Draw wood and food bars
-            #agent.wood_bar(screen)
-            #agent.food_bar(screen)
+            agent.wood_bar(screen)
+            agent.food_bar(screen)
 
             # Check in surrounding area (9 cells) for resources
             # And update agent beliefs of their locations
