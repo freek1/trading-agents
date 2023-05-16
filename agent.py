@@ -5,7 +5,7 @@ resources = ['wood', 'food']
 RANDOM_AGENTS = True
 TRADE_THRESHOLD = 1.2
 TRADE_QTY = 1.0
-UPKEEP_COST = 0.0
+UPKEEP_COST = 0.2
 
 class Agent:
     def __init__(self, id, color, predispositions, specialization, GRID_WIDTH, GRID_HEIGHT):
@@ -16,6 +16,7 @@ class Agent:
         self.id = id
         self.alive = True
         self.color = color
+        self.time_alive = 0
         self.wood_capacity = 30
         self.food_capacity = 30
         self.current_stock = {
@@ -47,6 +48,11 @@ class Agent:
         pygame.draw.rect(screen, self.color, (800 - self.bar_length - 10, (self.id * 3) * 10 + 70, self.current_stock['food'] / self.bar_ratio_food, 25))
         pygame.draw.rect(screen, (0, 0, 0), (800 - self.bar_length - 10, (self.id * 3) * 10 + 70, self.bar_length, 25), 4)
         
+    def update_time_alive(self):
+        self.time_alive += 1
+
+    def get_time_alive(self):
+        return self.time_alive
 
     def updateBehaviour(self):
         # If agent has no knowledge of wood or food locations, random walk.

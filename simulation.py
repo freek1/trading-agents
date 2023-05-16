@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import pygame
 import random
 import numpy as np
@@ -105,7 +106,7 @@ def moveAgent(preferred_direction):
 pygame.init()
 clock = pygame.time.Clock()
 dt = 0
-fps = 60
+fps = 120
 time = 1
 
 
@@ -213,6 +214,8 @@ while running:
     # Update the agents
     for agent in agents:
         if agent.isAlive():
+            agent.update_time_alive()
+
             y, x = agent.getPos()
             rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(screen, agent.getColor(), rect)
@@ -295,3 +298,15 @@ while running:
 # Clean up
 pygame.quit()
 
+# Time alive of agents distribution
+alive_times = np.zeros(NUM_AGENTS)
+for agent in agents:
+    alive_times[agent.id] = agent.time_alive
+
+plt.figure
+plt.bar(np.arange(NUM_AGENTS), np.sort(alive_times))
+plt.plot(np.arange(NUM_AGENTS), np.sort(alive_times), 'k')
+plt.xlabel('Agents')
+plt.ylabel('Time alive [timesteps]')
+plt.title('Time alive distribution of the agents')
+plt.show()
