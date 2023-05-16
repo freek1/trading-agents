@@ -41,7 +41,7 @@ def take_resource(agent: Agent, chosen_resource, resources):
     '''
     x, y = agent.getPos()
     agent.gatherResource(chosen_resource) 
-    resources[chosen_resource][y][x] -= agent.getSpecificSpecialization(chosen_resource)
+    resources[chosen_resource][x][y] -= agent.getSpecificSpecialization(chosen_resource)
 
 
 def able_to_take_resource(agent, chosen_resource, resources):
@@ -63,9 +63,9 @@ def find_nearest_resource(agent, resource):
     for y in range(GRID_HEIGHT):
         for x in range(GRID_WIDTH):
             if resources[resource][y][x]>=1:
-                if math.dist((y_agent, x_agent), (y, x))<closest_dist:
+                if math.dist((y_agent, x_agent), (y, x)) < closest_dist:
                     closest_dist = math.dist((y_agent, x_agent), (y, x))
-                    closest_loc = y, x
+                    closest_loc = x, y
     return closest_loc
 
 def cellAvailable(x, y):
@@ -81,11 +81,11 @@ def moveAgent(preferred_direction):
     # move agent to preferred direction if possible, otherwise move randomly
     x, y = agent.getPos()
     dy, dx = preferred_direction
-    if 0 <= x+dx < GRID_WIDTH and  0 <= y+dy < GRID_HEIGHT:
+    if 0 <= x + dx < GRID_WIDTH and  0 <= y + dy < GRID_HEIGHT:
         new_x = x + dx
         new_y = y + dy
         if cellAvailable(new_x, new_y)[0]:
-            agent.move(dy, dx)
+            agent.move(dx, dy)
 
     else:
         found = False # available grid cell found
@@ -171,8 +171,8 @@ for i in range(NUM_AGENTS):
     predispotions /= predispotions.sum()
     specialization = np.random.uniform(1, 3, len(resources)) # multiplier
     
-    x = random.randint(0, GRID_WIDTH-1)
-    y = random.randint(0, GRID_HEIGHT-1)
+    x = random.randint(0, GRID_WIDTH-2)
+    y = random.randint(0, GRID_HEIGHT-2)
     color = (255.0,0.0,0.0) if x < GRID_WIDTH/2 else (0.0,255.0,0.0)
     agent = Agent(i, x, y, color, predispotions, specialization, GRID_WIDTH, GRID_HEIGHT) #color = np.array(agent_colours[i])*255
     agents.append(agent)
@@ -200,7 +200,7 @@ while running:
             food_color = DARK_GREEN if food_value > 7.5 else LIGHT_GREEN if food_value > 5 else GREEN if food_value > 1 else WHITE
 
             blended_color = (
-                max(min(255, int((wood_color[0] * wood_value + food_color[0] * food_value) / (wood_value + food_value + 1))), 0), # I added +1 to prevent / 0 errors
+                max(min(255, int((wood_color[0] * wood_value + food_color[0] * food_value) / (wood_value + food_value + 1))), 0),
                 max(min(255, int((wood_color[1] * wood_value + food_color[1] * food_value) / (wood_value + food_value + 1))), 0),
                 max(min(255, int((wood_color[2] * wood_value + food_color[2] * food_value) / (wood_value + food_value + 1))), 0),
                 max(min(255, int(max(wood_value, food_value)*25)), 0)
@@ -231,8 +231,8 @@ while running:
             pygame.draw.rect(screen, agent.getColor(), rect)
 
             # Draw wood and food bars
-            agent.wood_bar(screen)
-            agent.food_bar(screen)
+            # agent.wood_bar(screen)
+            # agent.food_bar(screen)
 
             # Check in surrounding area (9 cells) for resources
             # And update agent beliefs of their locations
@@ -256,7 +256,7 @@ while running:
                 neighboring_cells = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
                 neighboring_cells.remove((0,0))
                 while not traded and neighboring_cells:
-                    dy, dx = random.choice(neighboring_cells)
+                    dx, dy = random.choice(neighboring_cells)
                     neighboring_cells.remove((dx, dy))
                     if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
                         x_check = agent.getPos()[0] + dx
