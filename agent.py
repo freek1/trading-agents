@@ -73,9 +73,9 @@ class Agent:
                 # self.movement = 'trade'
         # Update gather/trade behaviour
         if self.current_stock['wood']/self.current_stock['food'] > TRADE_THRESHOLD:
-            self.behaviour = 'trade_food' # means selling wood
+            self.behaviour = 'trade_wood' # means selling wood
         elif self.current_stock['food']/self.current_stock['wood'] > TRADE_THRESHOLD:
-            self.behaviour = 'trade_wood' # means selling food
+            self.behaviour = 'trade_food' # means selling food
         else: self.behaviour = 'gather'
     
     def chooseStep(self):
@@ -104,7 +104,7 @@ class Agent:
         traded_quantity = 0.0
         if self.behaviour == 'trade_wood':
             # Sell wood for food
-            while not self.tradeFinalized() or agent_B.tradeFinalized():
+            while not (self.tradeFinalized() or agent_B.tradeFinalized()):
                 self.current_stock['wood'] -= TRADE_QTY
                 agent_B.current_stock['wood'] += TRADE_QTY - transaction_cost
                 agent_B.current_stock['food'] -= TRADE_QTY
@@ -112,7 +112,7 @@ class Agent:
                 traded_quantity += TRADE_QTY
         else:
             # Sell food for wood
-            while not self.tradeFinalized() or agent_B.tradeFinalized():
+            while not (self.tradeFinalized() or agent_B.tradeFinalized()):
                 self.current_stock['food'] -= TRADE_QTY
                 agent_B.current_stock['food'] += TRADE_QTY - transaction_cost
                 agent_B.current_stock['wood'] -= TRADE_QTY
@@ -123,9 +123,7 @@ class Agent:
     
     def tradeFinalized(self):
         # Finalize trade if resource equilibrium is reached (diff < TRADE_QTY/2)
-        if -TRADE_QTY < self.current_stock['wood'] - self.current_stock['food'] < TRADE_QTY/2:
-            return True
-        return False
+        return abs(self.current_stock['wood'] - self.current_stock['food']) <= TRADE_QTY
 
     def addWoodLocation(self, pos):
         if pos not in self.wood_locations:

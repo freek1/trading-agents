@@ -108,9 +108,15 @@ dt = 0
 fps = 60
 time = 1
 
+
+# Set up the grid
+CELL_SIZE = 20
+GRID_WIDTH = 40 
+GRID_HEIGHT = 40
+
 # Set the dimensions of the screen
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 800
+SCREEN_WIDTH = GRID_WIDTH * CELL_SIZE
+SCREEN_HEIGHT = GRID_HEIGHT * CELL_SIZE
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Define some colors
@@ -125,26 +131,20 @@ LIGHT_GREEN = (102, 204, 102)
 RED  = (255, 25, 25)
 BLUE = (25, 25, 255)
 
-# Set up the grid
-CELL_SIZE = 20
-GRID_WIDTH = SCREEN_WIDTH // CELL_SIZE
-GRID_HEIGHT = SCREEN_HEIGHT // CELL_SIZE
 
-# wood = [[random.uniform(0, 10) for x in range(GRID_WIDTH)] for y in range(GRID_HEIGHT)]
-# food = [[random.uniform(0, 10) for x in range(GRID_WIDTH)] for y in range(GRID_HEIGHT)]
+wood = [[random.uniform(0, 10) for x in range(4,12)] for y in range(4,12)]
+food = [[random.uniform(0, 10) for x in range(4,12)] for y in range(4,12)]
 
 # Wood and food in non-random positions
 wood = np.zeros((GRID_HEIGHT, GRID_WIDTH))
-for i in range(GRID_HEIGHT):
-    for j in range(GRID_WIDTH):
-        if i in [0,1,2,3] and j in [0,1,2,3]:
-            wood[i][j] = random.uniform(5, 10)
+for i in range(0,8):
+    for j in range(0,8):
+        wood[i][j] = random.uniform(5, 10)
 
 food = np.zeros((GRID_HEIGHT, GRID_WIDTH))
-for i in range(GRID_HEIGHT):
-    for j in range(GRID_WIDTH):
-        if i in [5,6,7,8] and j in [5,6,7,8]:
-            food[i][j] = random.uniform(5, 10)
+for i in range(32,40):
+    for j in range(32,40):
+        food[i][j] = random.uniform(5, 10)
 
 maximum_resources = {
     'wood': wood,
@@ -154,7 +154,7 @@ maximum_resources = {
 resources = copy.deepcopy(maximum_resources)
 
 # Set up the agents
-NUM_AGENTS = 10
+NUM_AGENTS = 100
 agents = []
 agent_colours = sns.color_palette('bright', n_colors=NUM_AGENTS)
 
@@ -252,9 +252,12 @@ while running:
                         if agent_B is None:
                             continue
                         if agent.compatible(agent_B):
+                            print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
+                            print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
+                            print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
                             traded_qty = agent.trade(agent_B, transaction_cost)
                             traded = True
-                            print(f"TRADE with {agent_B.getPos()}, qty traded: {traded_qty}")
+                            print(f"  Qty traded: {traded_qty}")
             # Update the resource gathering
             else:
                 chosen_resource = choose_resource(agent, resources) # make agent choose which resource to gather based on it's predisposition
