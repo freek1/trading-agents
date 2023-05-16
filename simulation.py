@@ -101,14 +101,12 @@ def moveAgent(preferred_direction):
                     agent.move(dy, dx)
                     found = True
 
-
 # Initialize Pygame
 pygame.init()
 clock = pygame.time.Clock()
 dt = 0
-fps = 120
+fps = 2
 time = 1
-
 
 # Set up the grid
 CELL_SIZE = 20
@@ -124,28 +122,31 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BROWN = (153, 102, 0)
-DARK_BROWN = (90, 70, 0)
+DARK_BROWN = (60, 40, 0)
 LIGHT_BROWN = (148, 113, 0)
 GREEN = (0, 153, 51)
 DARK_GREEN = (0, 102, 34)
 LIGHT_GREEN = (102, 204, 102)
 RED  = (255, 25, 25)
 BLUE = (25, 25, 255)
+FOOD_COLOR = (200,100,0)
 
+MAX_WOOD = 10
+MAX_FOOD = 10
+# Uniform random distribution of resources
+# wood = [[random.uniform(0, MAX_WOOD) for x in range(4,12)] for y in range(4,12)]
+# food = [[random.uniform(0, MAX_FOOD) for x in range(4,12)] for y in range(4,12)]
 
-wood = [[random.uniform(0, 10) for x in range(4,12)] for y in range(4,12)]
-food = [[random.uniform(0, 10) for x in range(4,12)] for y in range(4,12)]
-
-# Wood and food in non-random positions
+# Resources in non-random positions
 wood = np.zeros((GRID_HEIGHT, GRID_WIDTH))
-for i in range(0,8):
+for i in range(0,GRID_WIDTH):
     for j in range(0,8):
-        wood[i][j] = random.uniform(5, 10)
+        wood[i][j] = random.uniform(5, MAX_WOOD)
 
 food = np.zeros((GRID_HEIGHT, GRID_WIDTH))
-for i in range(32,40):
-    for j in range(32,40):
-        food[i][j] = random.uniform(5, 10)
+for i in range(0,GRID_WIDTH):
+    for j in range(32,GRID_HEIGHT):
+        food[i][j] = random.uniform(5, MAX_FOOD)
 
 maximum_resources = {
     'wood': wood,
@@ -155,7 +156,7 @@ maximum_resources = {
 resources = copy.deepcopy(maximum_resources)
 
 # Set up the agents
-NUM_AGENTS = 100
+NUM_AGENTS = 200
 agents = []
 agent_colours = sns.color_palette('bright', n_colors=NUM_AGENTS)
 
@@ -164,15 +165,16 @@ regen_active = True
 
 transaction_cost = 0.1
 
-
-
 for i in range(NUM_AGENTS):
     # create predispotion for resources 
     predispotions = np.random.uniform(0.4, 0.6, len(resources)) # probability of chosing that particular resource
     predispotions /= predispotions.sum()
     specialization = np.random.uniform(1, 3, len(resources)) # multiplier
-
-    agent = Agent(i, np.array(agent_colours[i])*255, predispotions, specialization, GRID_WIDTH, GRID_HEIGHT)
+    
+    x = random.randint(0, GRID_WIDTH-1)
+    y = random.randint(0, GRID_HEIGHT-1)
+    color = (255.0,0.0,0.0) if x < GRID_WIDTH/2 else (0.0,255.0,0.0)
+    agent = Agent(i, x, y, color, predispotions, specialization, GRID_WIDTH, GRID_HEIGHT) #color = np.array(agent_colours[i])*255
     agents.append(agent)
 
 # Run the simulation
@@ -193,6 +195,7 @@ while running:
             wood_value = wood[row][col]
             food_value = food[row][col]
             # Map the resource value to a shade of brown or green
+            
             wood_color = DARK_BROWN if wood_value > 7.5 else LIGHT_BROWN if wood_value > 5 else BROWN if wood_value > 1 else WHITE
             food_color = DARK_GREEN if food_value > 7.5 else LIGHT_GREEN if food_value > 5 else GREEN if food_value > 1 else WHITE
 
@@ -201,7 +204,14 @@ while running:
                 max(min(255, int((wood_color[1] * wood_value + food_color[1] * food_value) / (wood_value + food_value + 1))), 0),
                 max(min(255, int((wood_color[2] * wood_value + food_color[2] * food_value) / (wood_value + food_value + 1))), 0),
                 max(min(255, int(max(wood_value, food_value)*25)), 0)
-            ) 
+            )
+            '''
+            #food_color = FOOD_COLOR * (food_value/MAX_FOOD)
+            food_color = tuple((food_value/MAX_FOOD) * elem for elem in FOOD_COLOR)
+            #wood_color = DARK_BROWN * (wood_value/MAX_WOOD)
+            wood_color = tuple((wood_value/MAX_WOOD) * elem for elem in DARK_BROWN)
+            blended_color = tuple(map(lambda x, y: (x + y)/2, food_color, wood_color))'''
+
             rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
             draw_rect_alpha(screen, blended_color, rect)
 
@@ -221,8 +231,8 @@ while running:
             pygame.draw.rect(screen, agent.getColor(), rect)
 
             # Draw wood and food bars
-            agent.wood_bar(screen)
-            agent.food_bar(screen)
+            #agent.wood_bar(screen)
+            #agent.food_bar(screen)
 
             # Check in surrounding area (9 cells) for resources
             # And update agent beliefs of their locations

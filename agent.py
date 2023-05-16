@@ -8,11 +8,11 @@ TRADE_QTY = 1.0
 UPKEEP_COST = 0.2
 
 class Agent:
-    def __init__(self, id, color, predispositions, specialization, GRID_WIDTH, GRID_HEIGHT):
+    def __init__(self, id, x, y, color, predispositions, specialization, GRID_WIDTH, GRID_HEIGHT):
         self.GRID_WIDTH = GRID_WIDTH
         self.GRID_HEIGHT = GRID_HEIGHT
-        self.x = random.randint(0, GRID_WIDTH-1)
-        self.y = random.randint(0, GRID_HEIGHT-1)
+        self.x = x
+        self.y = y
         self.id = id
         self.alive = True
         self.color = color
