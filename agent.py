@@ -32,7 +32,7 @@ class Agent:
         self.specialization = specialization
         self.movement = "random"  # "pathfinding" or "random"
         self.behaviour = 'gather'
-        self.goal_position = (None, None)  # y, x
+        self.goal_position = (None, None)  # x, y
         # For wood and food bars
         self.bar_length = 200
         self.bar_ratio_wood = self.wood_capacity / self.bar_length
@@ -81,7 +81,7 @@ class Agent:
     def chooseStep(self):
         dx, dy = 0, 0
         if self.movement == 'pathfinding':
-            goal_y, goal_x = self.goal_position
+            goal_x, goal_y = self.goal_position
             if goal_y < self.y:
                 dy = -1
             elif goal_y > self.y:
@@ -93,7 +93,7 @@ class Agent:
         elif self.movement == 'random':
             dx = random.randint(-1, 1)
             dy = random.randint(-1, 1)
-        return dy, dx
+        return dx, dy
     
     def compatible(self, agent_B):
         if self.behaviour == 'trade_wood' and agent_B.getBehaviour() == 'trade_food' \
@@ -141,9 +141,9 @@ class Agent:
         if pos in self.food_locations:
             self.food_locations.remove(pos)
 
-    def move(self, dy, dx):
-        self.y += dy
+    def move(self, dx, dy):
         self.x += dx
+        self.y += dy
 
     def upkeep(self):
         for resource in self.current_stock.keys():
@@ -158,7 +158,7 @@ class Agent:
         return self.x == x and self.y == y
 
     def getPos(self):
-        return self.y, self.x
+        return self.x, self.y
     
     def getPredisposition(self):
         return self.predisposition
@@ -181,9 +181,9 @@ class Agent:
     def getCurrentStock(self, chosen_resource):
         return self.current_stock[chosen_resource]
     
-    def setPos(self, y, x):
-        self.y = y
+    def setPos(self, x, y):
         self.x = x
+        self.y = y
 
     def getSpecificSpecialization(self, resource):
         return self.specialization[resources.index(resource)]

@@ -38,7 +38,7 @@ def take_resource(agent: Agent, chosen_resource, resources):
     Output:
         None
     '''
-    y, x = agent.getPos()
+    x, y = agent.getPos()
     agent.gatherResource(chosen_resource) 
     resources[chosen_resource][y][x] -= agent.getSpecificSpecialization(chosen_resource)
 
@@ -52,11 +52,11 @@ def able_to_take_resource(agent, chosen_resource, resources):
     Output:
         bool, True if able to take resource, False if not
     '''
-    y, x = agent.getPos()
-    return agent.getCapacity(chosen_resource) > agent.getCurrentStock(chosen_resource) and resources[chosen_resource][y][x] >= 1
+    x, y = agent.getPos()
+    return agent.getCapacity(chosen_resource) > agent.getCurrentStock(chosen_resource) and resources[chosen_resource][x][y] >= 1
 
 def find_nearest_resource(agent, resource):
-    y_agent, x_agent = agent.getPos()
+    x_agent, y_agent = agent.getPos()
     closest_loc = (-np.inf, -np.inf)
     closest_dist = np.inf
     for y in range(GRID_HEIGHT):
@@ -78,7 +78,7 @@ def cellAvailable(x, y):
 
 def moveAgent(preferred_direction):
     # move agent to preferred direction if possible, otherwise move randomly
-    y, x = agent.getPos()
+    x, y = agent.getPos()
     dy, dx = preferred_direction
     if 0 <= x+dx < GRID_WIDTH and  0 <= y+dy < GRID_HEIGHT:
         new_x = x + dx
@@ -97,7 +97,7 @@ def moveAgent(preferred_direction):
                 new_x = x + dx
                 new_y = y + dy
                 if cellAvailable(new_x, new_y)[0]:
-                    agent.move(dy, dx)
+                    agent.move(dx, dy)
                     found = True
 
 # Initialize Pygame
@@ -223,7 +223,7 @@ while running:
     # Update the agents
     for agent in agents:
         if agent.isAlive():
-            y, x = agent.getPos()
+            x, y = agent.getPos()
             rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(screen, agent.getColor(), rect)
 
@@ -236,16 +236,16 @@ while running:
             for dy in range(-1, 2):
                 for dx in range(-1, 2):
                     if y + dy > 0 and y + dy < GRID_HEIGHT and x + dx > 0 and x + dx < GRID_WIDTH:
-                        y_check = (y + dy)
                         x_check = (x + dx)
-                        if resources['wood'][y_check][x_check] > 0:
-                            agent.addWoodLocation((y_check, x_check))
+                        y_check = (y + dy)
+                        if resources['wood'][x_check][y_check] > 0:
+                            agent.addWoodLocation((x_check, y_check))
                         else: 
-                            agent.removeWoodLocation((y_check, x_check))
-                        if resources['food'][y_check][x_check] > 0:
-                            agent.addFoodLocation((y_check, x_check))
+                            agent.removeWoodLocation((x_check, y_check))
+                        if resources['food'][x_check][y_check] > 0:
+                            agent.addFoodLocation((x_check, y_check))
                         else:
-                            agent.removeFoodLocation((y_check, x_check))
+                            agent.removeFoodLocation((x_check, y_check))
             
             # Do agent behaviour
             if agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food':
@@ -254,11 +254,11 @@ while running:
                 neighboring_cells.remove((0,0))
                 while not traded and neighboring_cells:
                     dy, dx = random.choice(neighboring_cells)
-                    neighboring_cells.remove((dy, dx))
+                    neighboring_cells.remove((dx, dy))
                     if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
-                        y_check = agent.getPos()[0] + dy
-                        x_check = agent.getPos()[1] + dx
-                        occupied, agent_B = cellAvailable(y_check, x_check)
+                        x_check = agent.getPos()[0] + dx
+                        y_check = agent.getPos()[1] + dy
+                        occupied, agent_B = cellAvailable(x_check, y_check)
                         if agent_B is None:
                             continue
                         if agent.compatible(agent_B):
@@ -283,7 +283,6 @@ while running:
             preferred_direction = agent.chooseStep()
             moveAgent(preferred_direction)
 
-        
     if regen_active:
         for maximum_resource in maximum_resources:
             for row in range(GRID_HEIGHT):
@@ -291,9 +290,6 @@ while running:
                     if maximum_resources[maximum_resource][row][column] > resources[maximum_resource][row][column]:
                         resources[f'{maximum_resource}'][row][column] += regen_amount
                         
-
-
-    
     # Update the display
     pygame.display.flip()
 
