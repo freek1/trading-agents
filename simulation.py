@@ -105,7 +105,7 @@ def moveAgent(preferred_direction):
 pygame.init()
 clock = pygame.time.Clock()
 dt = 0
-fps = 2
+fps = 60
 time = 1
 
 # Set up the grid
