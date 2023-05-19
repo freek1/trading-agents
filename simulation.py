@@ -6,6 +6,7 @@ import math
 import seaborn as sns
 import copy
 from agent import Agent
+from lifelines import KaplanMeierFitter
 
 def draw_rect_alpha(surface, color, rect):
     ''' Draws a rectangle with an alpha channel
@@ -308,6 +309,21 @@ pygame.quit()
 alive_times = np.zeros(NUM_AGENTS)
 for agent in agents:
     alive_times[agent.id] = agent.time_alive
+
+# List of time-steps
+duration = np.arange(time)
+# List of when agents died
+events = np.zeros(len(duration))
+for ev in alive_times:
+    ev = int(ev)
+    events[ev] = 1
+
+kmf = KaplanMeierFitter()
+kmf.fit(duration, events)
+plt.figure()
+kmf.plot()
+plt.title('Kaplan-Meier curve of agent deaths')
+plt.show()
 
 plt.figure
 plt.bar(np.arange(NUM_AGENTS), np.sort(alive_times))
