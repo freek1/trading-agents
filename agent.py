@@ -84,10 +84,8 @@ class Agent:
         # Update gather/trade behaviour
         ratio = self.current_stock['wood']/self.current_stock['food']
         if ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
-            self.movement = 'stay'
             self.behaviour = 'trade_wood' # means selling wood
         elif 1/ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
-            self.movement = 'stay'
             self.behaviour = 'trade_food' # means selling food
         else: 
             self.behaviour = 'gather'
@@ -118,10 +116,12 @@ class Agent:
             return True
 
     def trade(self, agent_B, transaction_cost):
+        old_color = self.color
         traded_quantity = 0.0
         if self.behaviour == 'trade_wood':
             # Sell wood for food 
             while not (self.tradeFinalized() or agent_B.tradeFinalized()):
+                self.color = (0,0,0)
                 self.current_stock['wood'] -= TRADE_QTY
                 agent_B.current_stock['wood'] += TRADE_QTY - transaction_cost
                 agent_B.current_stock['food'] -= TRADE_QTY
@@ -130,11 +130,14 @@ class Agent:
         else:
             # Sell food for wood
             while not (self.tradeFinalized() or agent_B.tradeFinalized()):
+                self.color = (0,0,0)
                 self.current_stock['food'] -= TRADE_QTY
                 agent_B.current_stock['food'] += TRADE_QTY - transaction_cost
                 agent_B.current_stock['wood'] -= TRADE_QTY
                 self.current_stock['wood'] += TRADE_QTY - transaction_cost
                 traded_quantity += TRADE_QTY
+            
+        # self.color = old_color
         
         if RANDOM_AGENTS:
             self.movement == 'random'
