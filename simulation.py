@@ -6,7 +6,6 @@ import math
 import seaborn as sns
 import copy
 from agent import Agent
-from lifelines import KaplanMeierFitter
 
 def draw_rect_alpha(surface, color, rect):
     ''' Draws a rectangle with an alpha channel
@@ -106,7 +105,7 @@ def moveAgent(preferred_direction):
 pygame.init()
 clock = pygame.time.Clock()
 dt = 0
-fps = 20
+fps = 60
 time = 1
 
 # Set up the grid
@@ -213,7 +212,7 @@ while running:
             wood_color = tuple((wood_value/MAX_WOOD) * elem for elem in DARK_BROWN)
             blended_color = tuple(map(lambda x, y: (x + y)/2, food_color, wood_color))'''
 
-            rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+            rect = pygame.Rect(row * CELL_SIZE, col * CELL_SIZE, CELL_SIZE, CELL_SIZE)
             draw_rect_alpha(screen, blended_color, rect)
 
     # Draw the grid
@@ -309,8 +308,6 @@ pygame.quit()
 alive_times = np.zeros(NUM_AGENTS)
 for agent in agents:
     alive_times[agent.id] = agent.time_alive
-
-kmf = KaplanMeierFitter()
 
 plt.figure
 plt.bar(np.arange(NUM_AGENTS), np.sort(alive_times))
