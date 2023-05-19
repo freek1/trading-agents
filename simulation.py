@@ -21,17 +21,23 @@ def draw_rect_alpha(surface, color, rect):
     pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
     surface.blit(shape_surf, rect)
 
-def choose_resource(agent, resources):
-    ''' Returns a random resource from the list of resources
+def choose_resource(agent:Agent, resources, gather_amount):
+    ''' Returns resource based on which resource is available
     Input: 
         agent: object
         resources: dict
     Output:
         chosen_resource: string, name of chosen resource
     '''
-    return list(resources.keys())[np.random.choice(len(resources), p=agent.getPredisposition())]
+    chosen_resource = None
+    x, y = agent.getPos()
+    chosen_resource = None
+    for resource in resources:
+        if resources[resource][x][y]>=gather_amount:
+            chosen_resource = resource
+    return chosen_resource
 
-def take_resource(agent: Agent, chosen_resource, resources):
+def take_resource(agent: Agent, chosen_resource, resources, gather_amount):
     ''' Takes a resource from the chosen resource
     Input: 
         agent: object
@@ -41,8 +47,8 @@ def take_resource(agent: Agent, chosen_resource, resources):
         None
     '''
     x, y = agent.getPos()
-    agent.gatherResource(chosen_resource) 
-    resources[chosen_resource][x][y] -= agent.getSpecificSpecialization(chosen_resource)
+    agent.gatherResource(chosen_resource, gather_amount) 
+    resources[chosen_resource][x][y] -= gather_amount
 
 
 def able_to_take_resource(agent, chosen_resource, resources):
@@ -54,6 +60,8 @@ def able_to_take_resource(agent, chosen_resource, resources):
     Output:
         bool, True if able to take resource, False if not
     '''
+    if chosen_resource == None:
+        return False
     x, y = agent.getPos()
     return agent.getCapacity(chosen_resource) > agent.getCurrentStock(chosen_resource) and resources[chosen_resource][x][y] >= 1
 
@@ -165,17 +173,14 @@ regen_amount = 10
 regen_active = True
 
 transaction_cost = 0.1
+gather_amount = 1
 
 for i in range(NUM_AGENTS):
-    # create predispotion for resources 
-    predispotions = np.random.uniform(0.4, 0.6, len(resources)) # probability of chosing that particular resource
-    predispotions /= predispotions.sum()
-    specialization = np.random.uniform(1, 3, len(resources)) # multiplier
-    
+   
     x = random.randint(0, GRID_WIDTH-2)
     y = random.randint(0, GRID_HEIGHT-2)
     color = (255.0,0.0,0.0) if x < GRID_WIDTH/2 else (0.0,255.0,0.0)
-    agent = Agent(i, x, y, color, predispotions, specialization, GRID_WIDTH, GRID_HEIGHT) #color = np.array(agent_colours[i])*255
+    agent = Agent(i, x, y, color, GRID_WIDTH, GRID_HEIGHT) #color = np.array(agent_colours[i])*255
     agents.append(agent)
 
 # Run the simulation
@@ -274,9 +279,9 @@ while running:
                             print(f"  Qty traded: {traded_qty}")
             # Update the resource gathering
             else:
-                chosen_resource = choose_resource(agent, resources) # make agent choose which resource to gather based on it's predisposition
+                chosen_resource = choose_resource(agent, resources, gather_amount) # make agent choose which resource to gather based on it's predisposition
                 if able_to_take_resource(agent, chosen_resource, resources):
-                    take_resource(agent, chosen_resource, resources)
+                    take_resource(agent, chosen_resource, resources, gather_amount)
             
                 # Upkeep of agents and check if agent can survive
                 agent.upkeep()

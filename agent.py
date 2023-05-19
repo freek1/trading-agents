@@ -8,7 +8,7 @@ TRADE_QTY = 1.0
 UPKEEP_COST = 0.2
 
 class Agent:
-    def __init__(self, id, x, y, color, predispositions, specialization, GRID_WIDTH, GRID_HEIGHT):
+    def __init__(self, id, x, y, color, GRID_WIDTH, GRID_HEIGHT):
         self.GRID_WIDTH = GRID_WIDTH
         self.GRID_HEIGHT = GRID_HEIGHT
         self.x = x
@@ -29,8 +29,6 @@ class Agent:
         }
         self.wood_locations = [] # [(y_1, x_1), (y_2, x_2), ...] list
         self.food_locations = []
-        self.predisposition = predispositions
-        self.specialization = specialization
         self.movement = "random"  # "pathfinding" or "random"
         self.behaviour = 'gather'
         self.goal_position = (None, None)  # x, y
@@ -175,18 +173,15 @@ class Agent:
             if self.current_stock[resource] < 0:
                 self.alive = False
         
-    def gatherResource(self, chosen_resource):
-        self.current_stock[chosen_resource] += self.getSpecificSpecialization(chosen_resource) # calculates amount based on specialization
+    def gatherResource(self, chosen_resource, gather_amount):
+        self.current_stock[chosen_resource] += gather_amount
     
     def isAt(self, x, y):
         return self.x == x and self.y == y
 
     def getPos(self):
         return self.x, self.y
-    
-    def getPredisposition(self):
-        return self.predisposition
-    
+       
     def getBehaviour(self):
         return self.behaviour
     
@@ -208,9 +203,6 @@ class Agent:
     def setPos(self, x, y):
         self.x = x
         self.y = y
-
-    def getSpecificSpecialization(self, resource):
-        return self.specialization[resources.index(resource)]
     
     def getID(self):
         return self.id
