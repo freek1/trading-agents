@@ -63,9 +63,9 @@ def find_nearest_resource(agent, resource):
     closest_dist = np.inf
     for y in range(GRID_HEIGHT):
         for x in range(GRID_WIDTH):
-            if resources[resource][y][x]>=1:
-                if math.dist((y_agent, x_agent), (y, x)) < closest_dist:
-                    closest_dist = math.dist((y_agent, x_agent), (y, x))
+            if resources[resource][x][y]>=1:
+                if math.dist((x_agent, y_agent), (x, y)) < closest_dist:
+                    closest_dist = math.dist((x_agent, y_agent), (x, y))
                     closest_loc = x, y
     return closest_loc
 
@@ -81,7 +81,7 @@ def cellAvailable(x, y):
 def moveAgent(preferred_direction):
     # move agent to preferred direction if possible, otherwise move randomly
     x, y = agent.getPos()
-    dy, dx = preferred_direction
+    dx, dy = preferred_direction
     if 0 <= x + dx < GRID_WIDTH and  0 <= y + dy < GRID_HEIGHT:
         new_x = x + dx
         new_y = y + dy
@@ -93,8 +93,8 @@ def moveAgent(preferred_direction):
         possible_moves = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
         possible_moves.remove((0,0))
         while not found and possible_moves:
-            dy,dx = random.choice(possible_moves)
-            possible_moves.remove((dy,dx))
+            dx,dy = random.choice(possible_moves)
+            possible_moves.remove((dx, dy))
             if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
                 new_x = x + dx
                 new_y = y + dy
@@ -289,10 +289,10 @@ while running:
 
     if regen_active:
         for maximum_resource in maximum_resources:
-            for row in range(GRID_HEIGHT):
-                for column in range(GRID_WIDTH):
-                    if maximum_resources[maximum_resource][row][column] > resources[maximum_resource][row][column]:
-                        resources[f'{maximum_resource}'][row][column] += regen_amount
+            for y in range(GRID_HEIGHT):
+                for x in range(GRID_WIDTH):
+                    if maximum_resources[maximum_resource][x][y] > resources[maximum_resource][x][y]:
+                        resources[f'{maximum_resource}'][x][y] += regen_amount
                         
     # Update the display
     pygame.display.flip()
