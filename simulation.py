@@ -325,6 +325,7 @@ kmf.fit(duration, events)
 plt.figure()
 kmf.plot()
 plt.title('Kaplan-Meier curve of agent deaths')
+plt.ylabel('Survival probability')
 plt.show()
 
 plt.figure
