@@ -315,8 +315,10 @@ duration = np.arange(time)
 # List of when agents died
 events = np.zeros(len(duration))
 for ev in alive_times:
-    ev = int(ev)
-    events[ev] = 1
+    # If agent died before the final timestep (otherwise it was still alive at the end)
+    if ev < time - 1:
+        ev = int(ev)
+        events[ev] = 1
 
 kmf = KaplanMeierFitter()
 kmf.fit(duration, events)
