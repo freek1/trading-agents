@@ -6,6 +6,7 @@ import math
 import seaborn as sns
 import copy
 from agent import Agent
+from lifelines import KaplanMeierFitter
 
 def draw_rect_alpha(surface, color, rect):
     ''' Draws a rectangle with an alpha channel
@@ -308,6 +309,8 @@ pygame.quit()
 alive_times = np.zeros(NUM_AGENTS)
 for agent in agents:
     alive_times[agent.id] = agent.time_alive
+
+kmf = KaplanMeierFitter()
 
 plt.figure
 plt.bar(np.arange(NUM_AGENTS), np.sort(alive_times))
