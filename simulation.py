@@ -8,107 +8,8 @@ import copy
 from agent import Agent
 from lifelines import KaplanMeierFitter
 
-def draw_rect_alpha(surface, color, rect):
-    ''' Draws a rectangle with an alpha channel
-    Input: 
-        surface: object
-        color: tuple, RGB
-        rect: tuple, (x, y, w, h)
-    Output:
-        None
-    '''
-    shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
-    pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
-    surface.blit(shape_surf, rect)
-
-def choose_resource(agent:Agent, resources, gather_amount):
-    ''' Returns resource based on which resource is available
-    Input: 
-        agent: object
-        resources: dict
-    Output:
-        chosen_resource: string, name of chosen resource
-    '''
-    chosen_resource = None
-    x, y = agent.getPos()
-    chosen_resource = None
-    for resource in resources:
-        if resources[resource][x][y]>=gather_amount:
-            chosen_resource = resource
-    return chosen_resource
-
-def take_resource(agent: Agent, chosen_resource, resources, gather_amount):
-    ''' Takes a resource from the chosen resource
-    Input: 
-        agent: object
-        chosen_resource: string, name of chosen resource
-        resources: dict
-    Output:
-        None
-    '''
-    x, y = agent.getPos()
-    agent.gatherResource(chosen_resource, gather_amount) 
-    resources[chosen_resource][x][y] -= gather_amount
-
-
-def able_to_take_resource(agent, chosen_resource, resources):
-    ''' Checks if the agent is able to take a resource
-    Input: 
-        agent: object
-        chosen_resource: string, name of chosen resource
-        resources: dict
-    Output:
-        bool, True if able to take resource, False if not
-    '''
-    if chosen_resource == None:
-        return False
-    x, y = agent.getPos()
-    return agent.getCapacity(chosen_resource) > agent.getCurrentStock(chosen_resource) and resources[chosen_resource][x][y] >= 1
-
-def find_nearest_resource(agent, resource):
-    x_agent, y_agent = agent.getPos()
-    closest_loc = (-np.inf, -np.inf)
-    closest_dist = np.inf
-    for y in range(GRID_HEIGHT):
-        for x in range(GRID_WIDTH):
-            if resources[resource][x][y]>=1:
-                if math.dist((x_agent, y_agent), (x, y)) < closest_dist:
-                    closest_dist = math.dist((x_agent, y_agent), (x, y))
-                    closest_loc = x, y
-    return closest_loc
-
-def cellAvailable(x, y):
-    """
-    Returns True and agent if occupied
-    """
-    for agent in agents:
-        if agent.isAt(x, y):
-            return (False, agent)
-    return (True, None)
-
-def moveAgent(preferred_direction):
-    # move agent to preferred direction if possible, otherwise move randomly
-    x, y = agent.getPos()
-    dx, dy = preferred_direction
-    if 0 <= x + dx < GRID_WIDTH and  0 <= y + dy < GRID_HEIGHT:
-        new_x = x + dx
-        new_y = y + dy
-        if cellAvailable(new_x, new_y)[0]:
-            agent.move(dx, dy)
-
-    else:
-        found = False # available grid cell found
-        possible_moves = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
-        possible_moves.remove((0,0))
-        while not found and possible_moves:
-            dx,dy = random.choice(possible_moves)
-            possible_moves.remove((dx, dy))
-            if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
-                new_x = x + dx
-                new_y = y + dy
-                if cellAvailable(new_x, new_y)[0]:
-                    agent.move(dx, dy)
-                    found = True
+# Functions file
+from funcs import *
 
 # Initialize Pygame
 pygame.init()
@@ -117,10 +18,7 @@ dt = 0
 fps = 120
 time = 1
 
-# Set up the grid
-CELL_SIZE = 20
-GRID_WIDTH = 40 
-GRID_HEIGHT = 40
+GRID_WIDTH, GRID_HEIGHT, CELL_SIZE = get_grid_params()
 
 # Set the dimensions of the screen
 SCREEN_WIDTH = GRID_WIDTH * CELL_SIZE
@@ -273,7 +171,7 @@ while running:
                     if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
                         x_check = agent.getPos()[0] + dx
                         y_check = agent.getPos()[1] + dy
-                        occupied, agent_B = cellAvailable(x_check, y_check)
+                        occupied, agent_B = cellAvailable(x_check, y_check, agents)
                         if agent_B is None:
                             continue
                         if agent.compatible(agent_B):
@@ -295,7 +193,7 @@ while running:
             # Choose behaviour
             agent.updateBehaviour() # Agent brain
             preferred_direction = agent.chooseStep()
-            moveAgent(preferred_direction)
+            moveAgent(preferred_direction, agent, agents)
         # If agent is not alive, remove it from list
         else:
             # agents.remove(agent)
@@ -315,11 +213,13 @@ while running:
     dt = clock.tick(fps)/100
     time += 1
     
+    # Counting the nr of alive agents for automatic stopping
+    nr_agents = -1
     for agent in agents:
-        nr=0
         if agent.isAlive():
-            nr+=1
-    if nr==1:
+            nr_agents += 1
+    if nr_agents == 0:
+        print('No agents left, ending simulation')
         running=False
         
 # Clean up
@@ -346,6 +246,8 @@ plt.figure()
 kmf.plot()
 plt.title('Kaplan-Meier curve of agent deaths')
 plt.ylabel('Survival probability')
+plt.show()
+plt.close()
 
 plt.figure
 plt.bar(np.arange(NUM_AGENTS), np.sort(alive_times))
@@ -354,3 +256,4 @@ plt.xlabel('Agents')
 plt.ylabel('Time alive [timesteps]')
 plt.title('Time alive distribution of the agents')
 plt.show()
+plt.close()
