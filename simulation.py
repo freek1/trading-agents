@@ -114,7 +114,7 @@ def moveAgent(preferred_direction):
 pygame.init()
 clock = pygame.time.Clock()
 dt = 0
-fps = 60
+fps = 120
 time = 1
 
 # Set up the grid
@@ -165,7 +165,7 @@ maximum_resources = {
 resources = copy.deepcopy(maximum_resources)
 
 # Set up the agents
-NUM_AGENTS = 200
+NUM_AGENTS = 100
 agents = []
 agent_colours = sns.color_palette('bright', n_colors=NUM_AGENTS)
 
@@ -179,7 +179,7 @@ for i in range(NUM_AGENTS):
    
     x = random.randint(0, GRID_WIDTH-2)
     y = random.randint(0, GRID_HEIGHT-2)
-    color = (255.0,0.0,0.0) if x < GRID_WIDTH/2 else (0.0,255.0,0.0)
+    color = (255.0,0.0,0.0) if y < GRID_HEIGHT/2 else (0.0,255.0,0.0)
     agent = Agent(i, x, y, color, GRID_WIDTH, GRID_HEIGHT) #color = np.array(agent_colours[i])*255
     agents.append(agent)
 
@@ -226,6 +226,12 @@ while running:
         pygame.draw.line(screen, BLACK, (x, 0), (x, SCREEN_HEIGHT))
     for y in range(0, SCREEN_HEIGHT, CELL_SIZE):
         pygame.draw.line(screen, BLACK, (0, y), (SCREEN_WIDTH, y))
+
+    # DEBUG
+    # if len(agents) < 10:
+    #     fps = 5
+    #     for agent in agents:
+    #         print('pos',agent.getPos(),'wood',agent.getCurrentStock('wood'),'food',agent.getCurrentStock('food'))
 
     # Update the agents
     for agent in agents:
@@ -283,14 +289,17 @@ while running:
                 if able_to_take_resource(agent, chosen_resource, resources):
                     take_resource(agent, chosen_resource, resources, gather_amount)
             
-                # Upkeep of agents and check if agent can survive
-                agent.upkeep()
-                
+            # Upkeep of agents and check if agent can survive
+            agent.upkeep()
 
             # Choose behaviour
             agent.updateBehaviour() # Agent brain
             preferred_direction = agent.chooseStep()
             moveAgent(preferred_direction)
+        # If agent is not alive, remove it from list
+        else:
+            # agents.remove(agent)
+            pass
 
     if regen_active:
         for maximum_resource in maximum_resources:
@@ -306,7 +315,13 @@ while running:
     dt = clock.tick(fps)/100
     time += 1
     
-
+    for agent in agents:
+        nr=0
+        if agent.isAlive():
+            nr+=1
+    if nr==1:
+        running=False
+        
 # Clean up
 pygame.quit()
 
@@ -331,7 +346,6 @@ plt.figure()
 kmf.plot()
 plt.title('Kaplan-Meier curve of agent deaths')
 plt.ylabel('Survival probability')
-plt.show()
 
 plt.figure
 plt.bar(np.arange(NUM_AGENTS), np.sort(alive_times))

@@ -5,7 +5,7 @@ resources = ['wood', 'food']
 RANDOM_AGENTS = True
 TRADE_THRESHOLD = 1.5
 TRADE_QTY = 1.0
-UPKEEP_COST = 0.2
+UPKEEP_COST = 0.02
 
 class Agent:
     def __init__(self, id, x, y, color, GRID_WIDTH, GRID_HEIGHT):
