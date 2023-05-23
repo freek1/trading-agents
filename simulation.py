@@ -2,14 +2,14 @@ from matplotlib import pyplot as plt
 import pygame
 import random
 import numpy as np
-import math
 import seaborn as sns
 import copy
-from agent import Agent
 from lifelines import KaplanMeierFitter
 
 # Functions file
 from funcs import *
+# Agent class
+from agent import Agent
 
 # Initialize Pygame
 pygame.init()
@@ -131,9 +131,13 @@ while running:
     #     for agent in agents:
     #         print('pos',agent.getPos(),'wood',agent.getCurrentStock('wood'),'food',agent.getCurrentStock('food'))
 
+    # Counting the nr of alive agents for automatic stopping
+    nr_agents = 0
+
     # Update the agents
     for agent in agents:
         if agent.isAlive():
+            nr_agents += 1
             agent.update_time_alive()
 
             x, y = agent.getPos()
@@ -213,11 +217,6 @@ while running:
     dt = clock.tick(fps)/100
     time += 1
     
-    # Counting the nr of alive agents for automatic stopping
-    nr_agents = -1
-    for agent in agents:
-        if agent.isAlive():
-            nr_agents += 1
     if nr_agents == 0:
         print('No agents left, ending simulation')
         running=False
@@ -240,20 +239,20 @@ for ev in alive_times:
         ev = int(ev)
         events[ev] = 1
 
+# Result figures
 kmf = KaplanMeierFitter()
 kmf.fit(duration, events)
-plt.figure()
+km_graph = plt.figure()
 kmf.plot()
 plt.title('Kaplan-Meier curve of agent deaths')
 plt.ylabel('Survival probability')
-plt.show()
-plt.close()
 
-plt.figure
+time_alive_fig = plt.figure()
 plt.bar(np.arange(NUM_AGENTS), np.sort(alive_times))
 plt.plot(np.arange(NUM_AGENTS), np.sort(alive_times), 'k')
 plt.xlabel('Agents')
 plt.ylabel('Time alive [timesteps]')
 plt.title('Time alive distribution of the agents')
+
+# Keep images open
 plt.show()
-plt.close()
