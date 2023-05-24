@@ -16,7 +16,7 @@ from agent import Agent
 pygame.init()
 clock = pygame.time.Clock()
 dt = 0
-fps = 5
+fps = 120
 time = 1
 
 # Market, Baseline, 
