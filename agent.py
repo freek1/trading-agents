@@ -49,24 +49,22 @@ class Agent:
         if ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
             self.behaviour = 'trade_wood' # means selling wood
             # adapt movement behaviour
-            match AGENT_TYPE:
-                case 'random':
-                    self.movement = "random"
-                case 'pathfind_neighbor':
-                    self.movement = "pathfind_neighbor"
-                case 'pathfind_market':
-                    self.movement = "pathfind_market"
+            if AGENT_TYPE == 'random':
+                self.movement = "random"
+            elif AGENT_TYPE == 'pathfind_neighbor':
+                self.movement = "pathfind_neighbor"
+            elif AGENT_TYPE == 'pathfind_market':
+                self.movement = "pathfind_market"
 
         elif 1/ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
             self.behaviour = 'trade_food' # means selling food
 
-            match AGENT_TYPE:
-                case 'random':
-                    self.movement = "random"
-                case 'pathfind_neighbor':
-                    self.movement = "pathfind_neighbor"
-                case 'pathfind_market':
-                    self.movement = "pathfind_market"
+            if AGENT_TYPE == 'random':
+                self.movement = "random"
+            elif AGENT_TYPE == 'pathfind_neighbor':
+                self.movement = "pathfind_neighbor"
+            elif AGENT_TYPE == 'pathfind_market':
+                self.movement = "pathfind_market"
     
     def chooseStep(self):
         ''' Pick the next direction to walk in for the agent
@@ -224,6 +222,12 @@ class Agent:
     def isAlive(self):
         return self.alive
     
+    def preferredResource(self):
+        if self.current_stock['food'] < self.current_stock['wood']:
+            return 'food'
+        else:
+            return 'wood'
+
     def getCapacity(self, chosen_resource):
         if chosen_resource == 'wood':
             return self.wood_capacity
