@@ -14,3 +14,20 @@ as the number of agents and changes in the behaviour on trading volume and speci
 2. What is the effect of transaction cost on trading behaviour, measured in trading volume?
 3. (Optional, if we do not make specialization fixed:) What is the effect of transaction cost on the
 level of resource production specialization within the population?
+
+## Research
+#### Measurement: 
+Kaplan-Meier survival distribution graph (KM-graph).
+
+![Example Kaplan-Meier survival graph](/imgs/km-curve.png)
+
+#### Situations: 
+| Situations | Description |
+| ------ | ------ |
+|  Baseline  |  Local trade with pathfinding to nearest compatible agent (using KD-trees with radius).  |
+|  Market situation  |  Local trade at a physical market area.  |
+|  Movement situation  |  Random movement in stead of goal-directed.  |
+|  Resource distributions  |  Examine the effect of different resource locations.  |
+
+#### Analysis: 
+Log-rank test (if KM-graphs cross-over), or ideally Cox Proportional-Hazards model (also gives hazard ratio).
