@@ -83,12 +83,12 @@ elif DISTRIBUTION == 'RandomGrid':
                     food[x][y] = random.uniform(5, MAX_FOOD)
 
 
-maximum_resources = {
+resources = {
     'wood': wood,
     'food': food,
 }
 
-resources = copy.deepcopy(maximum_resources)
+max_resources = copy.deepcopy(resources)
 
 # Set up the agents
 NUM_AGENTS = 100
@@ -189,11 +189,13 @@ while running:
             pass
 
     if regen_active:
-        for maximum_resource in maximum_resources:
+        for resource in resources:
             for y in range(GRID_HEIGHT):
                 for x in range(GRID_WIDTH):
-                    if maximum_resources[maximum_resource][x][y] > resources[maximum_resource][x][y]:
-                        resources[f'{maximum_resource}'][x][y] += regen_amount
+                    if resources[resource][x][y] < max_resources[resource][x][y] - regen_amount:
+                        resources[resource][x][y] += regen_amount
+                    else:
+                        resources[resource][x][y] = max_resources[resource][x][y]  # Set to max
     
     # Clear the screen
     screen.fill(WHITE)
