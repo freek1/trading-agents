@@ -120,15 +120,14 @@ resources = {
 max_resources = copy.deepcopy(resources)
 
 # Set up the agents
-NUM_AGENTS = 100
+NUM_AGENTS = 200
 agents = []
 agent_colours = sns.color_palette('bright', n_colors=NUM_AGENTS)
 
-regen_amount = 0.01
+regen_amount = 0.005
 regen_active = True
 
-transaction_cost = 0.1
-gather_amount = 1
+gather_amount = 1.0
 
 agent_positions = np.zeros([NUM_AGENTS, 2])
 
