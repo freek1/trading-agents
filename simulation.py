@@ -22,7 +22,7 @@ time = 1
 # Market, Baseline, 
 SCENARIO = 'Market'
  # 'random', 'pathfind_neighbor', 'pathfind_market'
-AGENT_TYPE = 'random'
+AGENT_TYPE = 'pathfind_market'
 
 # Sides, RandomGrid, Uniform
 DISTRIBUTION = 'Sides'
@@ -32,7 +32,7 @@ GRID_WIDTH, GRID_HEIGHT, CELL_SIZE = get_grid_params()
 
 #place and size of market
 MARKET_PLACE = 'Middle'
-market_size = 3
+market_size = 6
 
 # Grid distribution parameters
 BLOB_SIZE = 3
@@ -172,7 +172,7 @@ while running:
             pygame.draw.rect(screen, agent.getColor(), rect)
             
             # Do agent behaviour
-            if agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food':
+            if (agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food') and SCENARIO == 'Baseline':
                 traded = False
                 neighboring_cells = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
                 neighboring_cells.remove((0,0))
@@ -197,6 +197,37 @@ while running:
                             # If not compatible, find next nearest neighbor
                             agent.removeClosestNeighbor()
 
+            elif (agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food') and SCENARIO == 'Market':
+                market_idx = np.argwhere(market)
+                if [x, y] in market_idx:
+                    traded = False
+                    neighboring_cells = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
+                    neighboring_cells.remove((0,0))
+                    
+                    while not traded and neighboring_cells:
+                        dx, dy = random.choice(neighboring_cells)
+                        neighboring_cells.remove((dx, dy))
+
+                        if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT and [x+dx, y+dy] in market_idx:
+                            x_check = agent.getPos()[0] + dx
+                            y_check = agent.getPos()[1] + dy
+                            occupied, agent_B = cellAvailable(x_check, y_check, agents)
+                            if agent_B is None:
+                                continue
+                            if agent.compatible(agent_B):
+                                print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
+                                print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
+                                print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
+                                traded_qty = agent.trade(agent_B)
+                                traded = True
+                                print(f"  Qty traded: {traded_qty}")
+
+                    if traded:
+                        agent.set_movement = 'random' 
+
+                else:
+                    agent.set_movment = 'pathfind_market'
+
             # Update the resource gathering
             else:
                 chosen_resource = choose_resource(agent, resources, gather_amount) # make agent choose which resource to gather based on it's predisposition
@@ -206,21 +237,20 @@ while running:
             # Upkeep of agents and check if agent can survive
             agent.upkeep()
 
+            # closest distance to market
+            agent.setClosestMarketPos(findClosestMarketPos(agent, market))
+
             # Choose behaviour
             agent.updateBehaviour() # Agent brain
 
             # Choose step
-            preferred_direction = agent.chooseStep()
+            preferred_direction = agent.chooseStep(market)
             moveAgent(preferred_direction, agent, agents)
 
             # Distance and indices of 5 nearest neighbors
             dist, idx = positions_tree.query([[x, y]], k=5)
             # Coordinates of 5 nearest neighbors as param
             agent.setNearestNeighbors(agent_positions[idx][0])
-
-            # closest distance to market
-            agent.setClosestMarketPos(findClosestMarketPos(agent, market))
-
 
             # Update agent position for the KD-tree
             agent_positions[i] = [x, y]

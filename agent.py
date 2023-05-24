@@ -68,7 +68,7 @@ class Agent:
             elif self.agent_type == 'pathfind_market':
                 self.movement = "pathfind_market"
     
-    def chooseStep(self):
+    def chooseStep(self, market):
         ''' Pick the next direction to walk in for the agent
         Input:
             self: agent
@@ -99,8 +99,24 @@ class Agent:
                 self.goal_position = (x_nn, y_nn)
 
         if self.movement == 'pathfind_market':
-            self.goal_position = self.closest_market_pos
+            if self.getPos() == self.goal_position:
+                self.movement == 'walk_market'
+            else:
+                self.goal_position = self.closest_market_pos
         
+        if self.movement == 'walk_market':
+            market_idx = np.argwhere(market)
+            possible_moves = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
+            possible_moves.remove((0,0))
+            found = False
+            while not found and possible_moves:
+                x, y = self.getPos()
+                dx,dy = random.choice(possible_moves)
+                if [dx+x, dy+y] in market_idx:
+                    self.move(dx, dy)
+                    found=True
+
+
         # move
         if 'pathfind' in self.movement:
             goal_x, goal_y = self.goal_position

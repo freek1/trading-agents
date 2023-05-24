@@ -129,13 +129,14 @@ def moveAgent(preferred_direction, agent, agents):
                     found = True
 
 def findClosestMarketPos(agent: Agent, market):
-    x, y = agent.getPos()
-    idx_market_true = np.argwhere(market)
-    smallest_distance = np.inf
-    x_cmp, y_cmp = 0, 0
-    for x_market, y_market in idx_market_true:
-        distance = math.dist([x_market, y_market], [x, y])
-        if distance < smallest_distance:
-            smallest_distance = distance
-            x_cmp, y_cmp = x_market, y_market
-    return x_cmp, y_cmp
+    return GRID_WIDTH/2, GRID_HEIGHT/2
+    # x, y = agent.getPos()
+    # idx_market_true = np.argwhere(market)
+    # smallest_distance = np.inf
+    # x_cmp, y_cmp = 0, 0
+    # for x_market, y_market in idx_market_true:
+    #     distance = math.dist([x_market, y_market], [x, y])
+    #     if distance < smallest_distance:
+    #         smallest_distance = distance
+    #         x_cmp, y_cmp = x_market, y_market
+    # return x_cmp, y_cmp
