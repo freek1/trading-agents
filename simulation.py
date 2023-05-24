@@ -91,15 +91,14 @@ resources = {
 max_resources = copy.deepcopy(resources)
 
 # Set up the agents
-NUM_AGENTS = 100
+NUM_AGENTS = 200
 agents = []
 agent_colours = sns.color_palette('bright', n_colors=NUM_AGENTS)
 
-regen_amount = 0.01
+regen_amount = 0.005
 regen_active = True
 
-transaction_cost = 0.1
-gather_amount = 1
+gather_amount = 1.0
 
 agent_positions = np.zeros([NUM_AGENTS, 2])
 
@@ -161,7 +160,7 @@ while running:
                             print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
                             print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
                             print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
-                            traded_qty = agent.trade(agent_B, transaction_cost)
+                            traded_qty = agent.trade(agent_B)
                             traded = True
                             print(f"  Qty traded: {traded_qty}")
                             agent.clearBlacklistedAgents()
