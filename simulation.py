@@ -241,6 +241,7 @@ while running:
     screen.fill(WHITE)
 
     # Draw resources
+    print(f"Total food: {round(np.sum(food), 1)}, wood: {round(np.sum(wood), 1)}")
     for row in range(GRID_HEIGHT):
         for col in range(GRID_WIDTH):
             wood_value = wood[row][col]
