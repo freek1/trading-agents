@@ -16,19 +16,16 @@ from agent import Agent
 pygame.init()
 clock = pygame.time.Clock()
 dt = 0
-fps = 120
+fps = 5
 time = 1
 
 # Market, Baseline, 
 SCENARIO = 'Baseline'
 
-# Sides, RandomGrid
-DISTRIBUTION = 'Sides'
+# Sides, RandomGrid, Uniform
+DISTRIBUTION = 'Uniform'
 
 GRID_WIDTH, GRID_HEIGHT, CELL_SIZE = get_grid_params()
-
-# Grid distribution parameters
-BLOB_SIZE = 3
 
 # Grid distribution parameters
 BLOB_SIZE = 3
@@ -53,8 +50,8 @@ FOOD_COLOR = (200,100,0)
 
 MIN_WOOD = 0
 MIN_FOOD = 0
-MAX_WOOD = 10
-MAX_FOOD = 10
+MAX_WOOD = 2
+MAX_FOOD = 2
 # Uniform random distribution of resources
 # wood = [[random.uniform(0, MAX_WOOD) for x in range(4,12)] for y in range(4,12)]
 # food = [[random.uniform(0, MAX_FOOD) for x in range(4,12)] for y in range(4,12)]
@@ -98,8 +95,8 @@ NUM_AGENTS = 100
 agents = []
 agent_colours = sns.color_palette('bright', n_colors=NUM_AGENTS)
 
-regen_amount = 10
-regen_active = True
+regen_amount = 1
+regen_active = False
 
 transaction_cost = 0.1
 gather_amount = 1
@@ -119,42 +116,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
-        # Clear the screen
-    screen.fill(WHITE)
-
-    # Draw the grid
-    for row in range(GRID_HEIGHT):
-        for col in range(GRID_WIDTH):
-            wood_value = wood[row][col]
-            food_value = food[row][col]
-            # Map the resource value to a shade of brown or green
-            
-            wood_color = DARK_BROWN if wood_value > 7.5 else LIGHT_BROWN if wood_value > 5 else BROWN if wood_value > 1 else WHITE
-            food_color = DARK_GREEN if food_value > 7.5 else LIGHT_GREEN if food_value > 5 else GREEN if food_value > 1 else WHITE
-
-            blended_color = (
-                max(min(255, int((wood_color[0] * wood_value + food_color[0] * food_value) / (wood_value + food_value + 1))), 0),
-                max(min(255, int((wood_color[1] * wood_value + food_color[1] * food_value) / (wood_value + food_value + 1))), 0),
-                max(min(255, int((wood_color[2] * wood_value + food_color[2] * food_value) / (wood_value + food_value + 1))), 0),
-                max(min(255, int(max(wood_value, food_value)*25)), 0)
-            )
-            '''
-            #food_color = FOOD_COLOR * (food_value/MAX_FOOD)
-            food_color = tuple((food_value/MAX_FOOD) * elem for elem in FOOD_COLOR)
-            #wood_color = DARK_BROWN * (wood_value/MAX_WOOD)
-            wood_color = tuple((wood_value/MAX_WOOD) * elem for elem in DARK_BROWN)
-            blended_color = tuple(map(lambda x, y: (x + y)/2, food_color, wood_color))'''
-
-            rect = pygame.Rect(row * CELL_SIZE, col * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            draw_rect_alpha(screen, blended_color, rect)
-
-    # Draw the grid
-    for x in range(0, SCREEN_WIDTH, CELL_SIZE):
-        pygame.draw.line(screen, BLACK, (x, 0), (x, SCREEN_HEIGHT))
-    for y in range(0, SCREEN_HEIGHT, CELL_SIZE):
-        pygame.draw.line(screen, BLACK, (0, y), (SCREEN_WIDTH, y))
-
+    
     # DEBUG
     # if len(agents) < 10:
     #     fps = 5
@@ -169,14 +131,7 @@ while running:
         if agent.isAlive():
             nr_agents += 1
             agent.update_time_alive()
-
             x, y = agent.getPos()
-            rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            pygame.draw.rect(screen, agent.getColor(), rect)
-
-            # Draw wood and food bars
-            # agent.wood_bar(screen)
-            # agent.food_bar(screen)
 
             # Check in surrounding area (9 cells) for resources
             # And update agent beliefs of their locations
@@ -239,6 +194,55 @@ while running:
                 for x in range(GRID_WIDTH):
                     if maximum_resources[maximum_resource][x][y] > resources[maximum_resource][x][y]:
                         resources[f'{maximum_resource}'][x][y] += regen_amount
+    
+    # Clear the screen
+    screen.fill(WHITE)
+
+    # Draw resources
+    for row in range(GRID_HEIGHT):
+        for col in range(GRID_WIDTH):
+            wood_value = wood[row][col]
+            food_value = food[row][col]
+            # Map the resource value to a shade of brown or green
+            old_rendering = False
+            if old_rendering:
+                wood_color = DARK_BROWN if wood_value > 7.5 else LIGHT_BROWN if wood_value > 5 else BROWN if wood_value > 0 else WHITE
+                food_color = DARK_GREEN if food_value > 7.5 else LIGHT_GREEN if food_value > 5 else GREEN if food_value > 0 else WHITE
+
+                blended_color = (
+                    max(min(255, int((wood_color[0] * wood_value + food_color[0] * food_value) / (wood_value + food_value + 1))), 0),
+                    max(min(255, int((wood_color[1] * wood_value + food_color[1] * food_value) / (wood_value + food_value + 1))), 0),
+                    max(min(255, int((wood_color[2] * wood_value + food_color[2] * food_value) / (wood_value + food_value + 1))), 0),
+                    max(min(255, int(max(wood_value, food_value)*25)), 0)
+                )
+            else:
+                inv_food_color = tuple(map(lambda i, j: i - j, WHITE, DARK_GREEN))
+                food_percentage = (food_value/MAX_FOOD)
+                inv_food_color = tuple(map(lambda i: i * food_percentage, inv_food_color))
+                food_color = tuple(map(lambda i, j: i - j, WHITE, inv_food_color))
+                inv_wood_color = tuple(map(lambda i, j: i - j, WHITE, BROWN))
+                wood_percentage = (wood_value/MAX_WOOD)
+                inv_wood_color = tuple(map(lambda i: i * wood_percentage, inv_wood_color))
+                wood_color = tuple(map(lambda i, j: i - j, WHITE, inv_wood_color))
+                blended_color = tuple(map(lambda x, y: (x + y)/2, food_color, wood_color))
+
+            rect = pygame.Rect(row * CELL_SIZE, col * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+            draw_rect_alpha(screen, food_color, rect)
+    
+    # Draw agents
+    for agent in agents:
+        x, y = agent.getPos()
+        rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+        pygame.draw.rect(screen, agent.getColor(), rect)
+        # Draw wood and food bars
+        # agent.wood_bar(screen)
+        # agent.food_bar(screen)
+
+    # Draw the grid
+    for x in range(0, SCREEN_WIDTH, CELL_SIZE):
+        pygame.draw.line(screen, BLACK, (x, 0), (x, SCREEN_HEIGHT))
+    for y in range(0, SCREEN_HEIGHT, CELL_SIZE):
+        pygame.draw.line(screen, BLACK, (0, y), (SCREEN_WIDTH, y))
                         
     # Update the display
     pygame.display.flip()
