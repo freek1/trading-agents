@@ -101,12 +101,20 @@ regen_active = True
 transaction_cost = 0.1
 gather_amount = 1
 
+agent_positions = np.zeros([NUM_AGENTS, 2])
+
+# Creating agents
 for i in range(NUM_AGENTS):
     x = random.randint(0, GRID_WIDTH-2)
     y = random.randint(0, GRID_HEIGHT-2)
     color = (255.0,0.0,0.0) if y < GRID_HEIGHT/2 else (0.0,255.0,0.0)
     agent = Agent(i, x, y, color, GRID_WIDTH, GRID_HEIGHT) #color = np.array(agent_colours[i])*255
     agents.append(agent)
+
+    # Save agent position for the KD-tree
+    agent_positions[i] = [x, y]
+    # Initialize KDTree
+    positions_tree = KDTree(agent_positions)
 
 # Run the simulation
 running = True
@@ -132,22 +140,8 @@ while running:
             nr_agents += 1
             agent.update_time_alive()
             x, y = agent.getPos()
-
-            # Check in surrounding area (9 cells) for resources
-            # And update agent beliefs of their locations
-            for dy in range(-1, 2):
-                for dx in range(-1, 2):
-                    if y + dy > 0 and y + dy < GRID_HEIGHT and x + dx > 0 and x + dx < GRID_WIDTH:
-                        x_check = (x + dx)
-                        y_check = (y + dy)
-                        if resources['wood'][x_check][y_check] > 0:
-                            agent.addWoodLocation((x_check, y_check))
-                        else: 
-                            agent.removeWoodLocation((x_check, y_check))
-                        if resources['food'][x_check][y_check] > 0:
-                            agent.addFoodLocation((x_check, y_check))
-                        else:
-                            agent.removeFoodLocation((x_check, y_check))
+            rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+            pygame.draw.rect(screen, agent.getColor(), rect)
             
             # Do agent behaviour
             if agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food':
@@ -170,6 +164,11 @@ while running:
                             traded_qty = agent.trade(agent_B, transaction_cost)
                             traded = True
                             print(f"  Qty traded: {traded_qty}")
+                            agent.clearBlacklistedAgents()
+                        else:
+                            # If not compatible, find next nearest neighbor
+                            agent.removeClosestNeighbor()
+
             # Update the resource gathering
             else:
                 chosen_resource = choose_resource(agent, resources, gather_amount) # make agent choose which resource to gather based on it's predisposition
@@ -181,12 +180,21 @@ while running:
 
             # Choose behaviour
             agent.updateBehaviour() # Agent brain
+
+            # Choose step
             preferred_direction = agent.chooseStep()
             moveAgent(preferred_direction, agent, agents)
-        # If agent is not alive, remove it from list
-        else:
-            # agents.remove(agent)
-            pass
+
+            # Distance and indices of 5 nearest neighbors
+            dist, idx = positions_tree.query([[x, y]], k=5)
+            # Coordinates of 5 nearest neighbors as param
+            agent.setNearestNeighbors(agent_positions[idx][0])
+
+            # Update agent position for the KD-tree
+            agent_positions[i] = [x, y]
+        
+        # Updating KD-tree
+        positions_tree = KDTree(agent_positions)
 
     if regen_active:
         for resource in resources:

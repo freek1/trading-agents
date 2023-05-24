@@ -1,8 +1,9 @@
 import random
 import pygame
+import numpy as np
 
 resources = ['wood', 'food']
-RANDOM_AGENTS = True
+AGENT_TYPE = 'random' # 'random', 'pathfind_neighbor', 'pathfind_market'
 TRADE_THRESHOLD = 1.5
 TRADE_QTY = 1.0
 UPKEEP_COST = 0.02
@@ -27,24 +28,11 @@ class Agent:
             "wood": UPKEEP_COST,
             "food": UPKEEP_COST,
         }
-        self.wood_locations = [] # [(y_1, x_1), (y_2, x_2), ...] list
-        self.food_locations = []
-        self.movement = "random"  # "pathfinding" or "random"
-        self.behaviour = 'gather'
+        self.behaviour = '',  # 'trade_wood', 'trade_food'
+        self.movement = 'random' # initialize as random for all agent types, since their movement changes only when wanting to trade
         self.goal_position = (None, None)  # x, y
-        # For wood and food bars
-        self.bar_length = 200
-        self.bar_ratio_wood = self.wood_capacity / self.bar_length
-        self.bar_ratio_food = self.food_capacity / self.bar_length
-
-    # TODO: make this responsive (SCREEN_WIDTH = 800) or remove
-    def wood_bar(self, screen):    
-        pygame.draw.rect(screen, self.color, (800 - self.bar_length - 10, (self.id * 3) * 10, self.current_stock['wood'] / self.bar_ratio_wood, 25))
-        pygame.draw.rect(screen, (0, 0, 0), (800 - self.bar_length - 10, (self.id * 3) * 10, self.bar_length, 25), 4)
-
-    def food_bar(self, screen):
-        pygame.draw.rect(screen, self.color, (800 - self.bar_length - 10, (self.id * 3) * 10 + 70, self.current_stock['food'] / self.bar_ratio_food, 25))
-        pygame.draw.rect(screen, (0, 0, 0), (800 - self.bar_length - 10, (self.id * 3) * 10 + 70, self.bar_length, 25), 4)
+        self.nearest_neighbors = [] # List of (x,y) of the nearest neighbors
+        self.blacklisted_agents = [[]] # List of (x,y) of the blacklisted agents
         
     def update_time_alive(self):
         self.time_alive += 1
@@ -56,41 +44,62 @@ class Agent:
         self.movement = movement
 
     def updateBehaviour(self):
-        # If agent has no knowledge of wood or food locations, random walk.
-        if not RANDOM_AGENTS:
-            if len(self.wood_locations) == 0 or len(self.food_locations) == 0:
-                self.movement = 'random'
-            if self.current_stock['wood'] < 10:
-                # If agent doesnt know a location, random walk.
-                # If he does, pathfind to it
-                if len(self.wood_locations) == 0:
-                    self.movement = 'random'
-                else:
-                    self.movement = 'pathfinding'
-                    self.goal_position = self.wood_locations.pop(0)
-            elif self.current_stock['food'] < 10:
-                if len(self.food_locations) == 0:
-                    self.movement = 'random'
-                else:
-                    self.movement = 'pathfinding'
-                    self.goal_position = self.food_locations.pop(0)
-            else:
-                self.movement = 'random'
-                # TODO: trade?
-                # self.movement = 'trade'
-
-        # Update gather/trade behaviour
+        # Update trade behaviour
         ratio = self.current_stock['wood']/self.current_stock['food']
         if ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
             self.behaviour = 'trade_wood' # means selling wood
+            # adapt movement behaviour
+            match AGENT_TYPE:
+                case 'random':
+                    self.movement = "random"
+                case 'pathfind_neighbor':
+                    self.movement = "pathfind_neighbor"
+                case 'pathfind_market':
+                    self.movement = "pathfind_market"
+
         elif 1/ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
             self.behaviour = 'trade_food' # means selling food
-        else: 
-            self.behaviour = 'gather'
+
+            match AGENT_TYPE:
+                case 'random':
+                    self.movement = "random"
+                case 'pathfind_neighbor':
+                    self.movement = "pathfind_neighbor"
+                case 'pathfind_market':
+                    self.movement = "pathfind_market"
     
     def chooseStep(self):
+        ''' Pick the next direction to walk in for the agent
+        Input:
+            self: agent
+        Output:
+            dx
+            dy
+        '''
         dx, dy = 0, 0
-        if self.movement == 'pathfinding':
+        # compute where to
+        if self.movement == 'pathfind_neighbor':
+            # TODO: find out how it can end up with unequal amount of values (it should be 5x2=10, sometimes its 9)
+            if len(self.nearest_neighbors.reshape(-1)) % 2 != 0:
+                return dx, dy
+            if len(self.blacklisted_agents.reshape(-1)) % 2 != 0:
+                return dx, dy
+            
+            self.nearest_neighbors.reshape(-1, 2)
+
+            print(self.nearest_neighbors, self.blacklisted_agents)
+            set1 = set(tuple(x) for x in self.nearest_neighbors)
+            set2 = set(tuple(x) for x in self.blacklisted_agents)
+            not_blacklisted_neighbors = list(set1 - set2)
+            
+            x_nn, y_nn = not_blacklisted_neighbors[0]
+            self.goal_position = (x_nn, y_nn)
+
+        if self.movement == 'pathfind_market':
+            self.goal_position = find_closest_market_position()
+        
+        # move
+        if 'pathfind' in self.movement:
             goal_x, goal_y = self.goal_position
             if goal_y < self.y:
                 dy = -1
@@ -103,9 +112,7 @@ class Agent:
         elif self.movement == 'random':
             dx = random.randint(-1, 1)
             dy = random.randint(-1, 1)
-        elif self.movement == 'stay':
-            dx = 0
-            dy = 0
+
         return dx, dy
     
     def compatible(self, agent_B):
@@ -121,27 +128,28 @@ class Agent:
             while not (self.tradeFinalized() or agent_B.tradeFinalized()):
                 self.color = (0,0,0)
                 self.current_stock['wood'] -= TRADE_QTY
-                agent_B.current_stock['wood'] += TRADE_QTY - transaction_cost
+                agent_B.current_stock['wood'] += TRADE_QTY #- transaction_cost
                 agent_B.current_stock['food'] -= TRADE_QTY
-                self.current_stock['food'] += TRADE_QTY - transaction_cost
+                self.current_stock['food'] += TRADE_QTY #- transaction_cost
                 traded_quantity += TRADE_QTY
-        else:
+        elif self.behaviour == 'trade_food':
             # Sell food for wood
             while not (self.tradeFinalized() or agent_B.tradeFinalized()):
                 self.color = (0,0,0)
                 self.current_stock['food'] -= TRADE_QTY
-                agent_B.current_stock['food'] += TRADE_QTY - transaction_cost
+                agent_B.current_stock['food'] += TRADE_QTY #- transaction_cost
                 agent_B.current_stock['wood'] -= TRADE_QTY
-                self.current_stock['wood'] += TRADE_QTY - transaction_cost
+                self.current_stock['wood'] += TRADE_QTY #- transaction_cost
                 traded_quantity += TRADE_QTY
             
-        # self.color = old_color
-        
-        if RANDOM_AGENTS:
-            self.movement == 'random'
-            agent_B.set_movement('random')
-            
+        # Return to not trading
+        self.behaviour = ''
+
         return traded_quantity
+    
+    def removeClosestNeighbor(self):
+        self.blacklisted_agents.append(self.nearest_neighbors[0])
+        self.nearest_neighbors = np.delete(self.nearest_neighbors, 0)
     
     def tradeFinalized(self):
         # Finalize trade if resource equilibrium is reached (diff < TRADE_QTY)
@@ -212,3 +220,9 @@ class Agent:
     
     def getID(self):
         return self.id
+    
+    def setNearestNeighbors(self, nearest_neighbors):
+        self.nearest_neighbors = nearest_neighbors
+
+    def clearBlacklistedAgents(self):
+        self.blacklisted_agents = []

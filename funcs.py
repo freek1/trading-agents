@@ -3,6 +3,7 @@ from agent import Agent
 import numpy as np
 import math
 import random
+from sklearn.neighbors import KDTree
 
 # Set up the grid
 CELL_SIZE = 20
