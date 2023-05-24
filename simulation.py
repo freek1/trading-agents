@@ -20,12 +20,19 @@ fps = 144
 time = 1
 
 # Market, Baseline, 
-SCENARIO = 'Baseline'
+SCENARIO = 'Market'
+ # 'random', 'pathfind_neighbor', 'pathfind_market'
+AGENT_TYPE = 'random'
 
 # Sides, RandomGrid, Uniform
-DISTRIBUTION = 'Uniform'
+DISTRIBUTION = 'Sides'
 
 GRID_WIDTH, GRID_HEIGHT, CELL_SIZE = get_grid_params()
+
+
+#place and size of market
+MARKET_PLACE = 'Middle'
+market_size = 3
 
 # Grid distribution parameters
 BLOB_SIZE = 3
@@ -47,6 +54,8 @@ LIGHT_GREEN = (102, 204, 102)
 RED  = (255, 25, 25)
 BLUE = (25, 25, 255)
 FOOD_COLOR = (200,100,0)
+YELLOW = (255, 255, 0)
+
 
 MIN_WOOD = 0
 MIN_FOOD = 0
@@ -56,32 +65,52 @@ MAX_FOOD = 2
 # wood = [[random.uniform(0, MAX_WOOD) for x in range(4,12)] for y in range(4,12)]
 # food = [[random.uniform(0, MAX_FOOD) for x in range(4,12)] for y in range(4,12)]
 
+market = np.zeros((GRID_HEIGHT, GRID_WIDTH))
+if SCENARIO == 'Market':
+    if MARKET_PLACE == 'Middle':
+        for x in range(int((GRID_WIDTH/2)-market_size), int((GRID_WIDTH/2)+market_size)):
+            for y in range(int((GRID_HEIGHT/2)-market_size), int((GRID_HEIGHT/2)+market_size)):
+                market[x][y] = True
+
+
 wood = np.zeros((GRID_HEIGHT, GRID_WIDTH))
 food = np.zeros((GRID_HEIGHT, GRID_WIDTH))
 if DISTRIBUTION == 'Sides':
     # Resources in non-random positions
     for x in range(0,GRID_WIDTH):
         for y in range(0,8):
-            wood[x][y] = random.uniform(5, MAX_WOOD)
+            if market[x][y]:
+                pass
+            else:
+                wood[x][y] = random.uniform(MIN_WOOD, MAX_WOOD)
     for x in range(0,GRID_WIDTH):
         for y in range(32,GRID_HEIGHT):
-            food[x][y] = random.uniform(5, MAX_FOOD)
+            if market[x][y]:
+                pass
+            else:
+                food[x][y] = random.uniform(MIN_FOOD, MAX_FOOD)
+
 elif DISTRIBUTION == 'Uniform':
     #TODO: uniform distibution, but low resources such that it supports a certain number of agents
     for x in range(0,GRID_WIDTH):
         for y in range(0,GRID_HEIGHT):
-            wood[x][y] = random.uniform(MIN_WOOD, MAX_WOOD)
-            food[x][y] = random.uniform(MIN_FOOD, MAX_FOOD)
+            if market[x][y]:
+                pass
+            else:
+                wood[x][y] = random.uniform(MIN_WOOD, MAX_WOOD)
+                food[x][y] = random.uniform(MIN_FOOD, MAX_FOOD)
+
 elif DISTRIBUTION == 'RandomGrid':
     # Nog niet af
     for x in range(0,GRID_WIDTH):
         for y in range(0,GRID_HEIGHT):
-            if int(x/BLOB_SIZE) % 2 == 0:
+            if market[x][y]:
+                pass
+            elif int(x/BLOB_SIZE) % 2 == 0:
                 if random.random() > 0.5:
-                    wood[x][y] = random.uniform(5, MAX_WOOD)
+                    wood[x][y] = random.uniform(MIN_WOOD, MAX_WOOD)
                 else:
-                    food[x][y] = random.uniform(5, MAX_FOOD)
-
+                    food[x][y] = random.uniform(MIN_FOOD, MAX_FOOD)
 
 resources = {
     'wood': wood,
@@ -108,7 +137,7 @@ for i in range(NUM_AGENTS):
     x = random.randint(0, GRID_WIDTH-2)
     y = random.randint(0, GRID_HEIGHT-2)
     color = (255.0,0.0,0.0) if y < GRID_HEIGHT/2 else (0.0,255.0,0.0)
-    agent = Agent(i, x, y, color, GRID_WIDTH, GRID_HEIGHT) #color = np.array(agent_colours[i])*255
+    agent = Agent(i, x, y, AGENT_TYPE, color, GRID_WIDTH, GRID_HEIGHT) #color = np.array(agent_colours[i])*255
     agents.append(agent)
 
     # Save agent position for the KD-tree
@@ -161,7 +190,7 @@ while running:
                             print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
                             print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
                             print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
-                            traded_qty = agent.trade(agent_B, transaction_cost)
+                            traded_qty = agent.trade(agent_B)
                             traded = True
                             print(f"  Qty traded: {traded_qty}")
                             agent.clearBlacklistedAgents()
@@ -189,6 +218,10 @@ while running:
             dist, idx = positions_tree.query([[x, y]], k=5)
             # Coordinates of 5 nearest neighbors as param
             agent.setNearestNeighbors(agent_positions[idx][0])
+
+            # closest distance to market
+            agent.setClosestMarketPos(findClosestMarketPos(agent, market))
+
 
             # Update agent position for the KD-tree
             agent_positions[i] = [x, y]
@@ -225,6 +258,10 @@ while running:
                     max(min(255, int((wood_color[2] * wood_value + food_color[2] * food_value) / (wood_value + food_value + 1))), 0),
                     max(min(255, int(max(wood_value, food_value)*25)), 0)
                 )
+
+            if market[row][col]:
+                blended_color = YELLOW
+
             else:
                 inv_food_color = tuple(map(lambda i, j: i - j, WHITE, DARK_GREEN))
                 food_percentage = (food_value/MAX_FOOD)
@@ -245,6 +282,7 @@ while running:
             x, y = agent.getPos()
             rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(screen, agent.getColor(), rect)
+
             # Draw wood and food bars
             # agent.wood_bar(screen)
             # agent.food_bar(screen)

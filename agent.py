@@ -3,13 +3,13 @@ import pygame
 import numpy as np
 
 resources = ['wood', 'food']
-AGENT_TYPE = 'random' # 'random', 'pathfind_neighbor', 'pathfind_market'
+
 TRADE_THRESHOLD = 1.5
 TRADE_QTY = 1.0
-UPKEEP_COST = 0.02
+UPKEEP_COST = 0.1
 
 class Agent:
-    def __init__(self, id, x, y, color, GRID_WIDTH, GRID_HEIGHT):
+    def __init__(self, id, x, y, agent_type, color, GRID_WIDTH, GRID_HEIGHT):
         self.GRID_WIDTH = GRID_WIDTH
         self.GRID_HEIGHT = GRID_HEIGHT
         self.x = x
@@ -33,6 +33,8 @@ class Agent:
         self.goal_position = (None, None)  # x, y
         self.nearest_neighbors = [] # List of (x,y) of the nearest neighbors
         self.blacklisted_agents = [[]] # List of (x,y) of the blacklisted agents
+        self.closest_market_pos = (None, None)
+        self.agent_type = agent_type
         
     def update_time_alive(self):
         self.time_alive += 1
@@ -49,21 +51,21 @@ class Agent:
         if ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
             self.behaviour = 'trade_wood' # means selling wood
             # adapt movement behaviour
-            if AGENT_TYPE == 'random':
+            if self.agent_type == 'random':
                 self.movement = "random"
-            elif AGENT_TYPE == 'pathfind_neighbor':
+            elif self.agent_type == 'pathfind_neighbor':
                 self.movement = "pathfind_neighbor"
-            elif AGENT_TYPE == 'pathfind_market':
+            elif self.agent_type == 'pathfind_market':
                 self.movement = "pathfind_market"
 
         elif 1/ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
             self.behaviour = 'trade_food' # means selling food
 
-            if AGENT_TYPE == 'random':
+            if self.agent_type == 'random':
                 self.movement = "random"
-            elif AGENT_TYPE == 'pathfind_neighbor':
+            elif self.agent_type == 'pathfind_neighbor':
                 self.movement = "pathfind_neighbor"
-            elif AGENT_TYPE == 'pathfind_market':
+            elif self.agent_type == 'pathfind_market':
                 self.movement = "pathfind_market"
     
     def chooseStep(self):
@@ -94,7 +96,7 @@ class Agent:
             self.goal_position = (x_nn, y_nn)
 
         if self.movement == 'pathfind_market':
-            self.goal_position = find_closest_market_position()
+            self.goal_position = self.closest_market_pos
         
         # move
         if 'pathfind' in self.movement:
@@ -113,12 +115,13 @@ class Agent:
 
         return dx, dy
     
+   
     def compatible(self, agent_B):
         if self.behaviour == 'trade_wood' and agent_B.getBehaviour() == 'trade_food' \
         or self.behaviour == 'trade_food' and agent_B.getBehaviour() == 'trade_wood':
             return True
 
-    def trade(self, agent_B, transaction_cost):
+    def trade(self, agent_B):
         old_color = self.color
         traded_quantity = 0.0
         if self.behaviour == 'trade_wood':
@@ -224,3 +227,6 @@ class Agent:
 
     def clearBlacklistedAgents(self):
         self.blacklisted_agents = []
+
+    def setClosestMarketPos(self, closest_market_pos):
+        self.closest_market_pos  = closest_market_pos

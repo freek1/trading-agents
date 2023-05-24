@@ -127,3 +127,15 @@ def moveAgent(preferred_direction, agent, agents):
                 if cellAvailable(new_x, new_y, agents)[0]:
                     agent.move(dx, dy)
                     found = True
+
+def findClosestMarketPos(agent: Agent, market):
+    x, y = agent.getPos()
+    idx_market_true = np.argwhere(market)
+    smallest_distance = np.inf
+    x_cmp, y_cmp = 0, 0
+    for x_market, y_market in idx_market_true:
+        distance = math.dist([x_market, y_market], [x, y])
+        if distance < smallest_distance:
+            smallest_distance = distance
+            x_cmp, y_cmp = x_market, y_market
+    return x_cmp, y_cmp
