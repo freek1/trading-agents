@@ -39,13 +39,19 @@ def choose_resource(agent:Agent, resources, gather_amount):
     Output:
         chosen_resource: string, name of chosen resource
     '''
-    chosen_resource = None
     x, y = agent.getPos()
-    chosen_resource = None
-    for resource in resources:
-        if resources[resource][x][y]>=gather_amount:
-            chosen_resource = resource
-    return chosen_resource
+    preferred = agent.preferredResource()
+    if resources[preferred][x][y] >= gather_amount:
+        return preferred
+    elif resources[other_resource(preferred)][x][y] >= gather_amount:
+        return other_resource(preferred)
+    return preferred
+
+def other_resource(resource: str):
+    # Return the opposing resource name
+    if resource == 'wood':
+        return 'food'
+    return 'wood'
 
 def take_resource(agent: Agent, chosen_resource, resources, gather_amount):
     ''' Takes a resource from the chosen resource
@@ -57,8 +63,9 @@ def take_resource(agent: Agent, chosen_resource, resources, gather_amount):
         None
     '''
     x, y = agent.getPos()
-    agent.gatherResource(chosen_resource, gather_amount) 
-    resources[chosen_resource][x][y] -= gather_amount
+    gathered = min(resources[chosen_resource][x][y], gather_amount)
+    resources[chosen_resource][x][y] -= gathered
+    agent.gatherResource(chosen_resource, gathered) 
 
 
 def able_to_take_resource(agent, chosen_resource, resources):

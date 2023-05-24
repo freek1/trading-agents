@@ -191,6 +191,12 @@ class Agent:
     def isAlive(self):
         return self.alive
     
+    def preferredResource(self):
+        if self.current_stock['food'] < self.current_stock['wood']:
+            return 'food'
+        else:
+            return 'wood'
+
     def getCapacity(self, chosen_resource):
         if chosen_resource == 'wood':
             return self.wood_capacity

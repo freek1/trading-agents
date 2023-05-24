@@ -16,7 +16,7 @@ from agent import Agent
 pygame.init()
 clock = pygame.time.Clock()
 dt = 0
-fps = 5
+fps = 144
 time = 1
 
 # Market, Baseline, 
@@ -95,8 +95,8 @@ NUM_AGENTS = 100
 agents = []
 agent_colours = sns.color_palette('bright', n_colors=NUM_AGENTS)
 
-regen_amount = 1
-regen_active = False
+regen_amount = 0.01
+regen_active = True
 
 transaction_cost = 0.1
 gather_amount = 1
@@ -173,8 +173,8 @@ while running:
             # Update the resource gathering
             else:
                 chosen_resource = choose_resource(agent, resources, gather_amount) # make agent choose which resource to gather based on it's predisposition
-                if able_to_take_resource(agent, chosen_resource, resources):
-                    take_resource(agent, chosen_resource, resources, gather_amount)
+                #if able_to_take_resource(agent, chosen_resource, resources):
+                take_resource(agent, chosen_resource, resources, gather_amount)
             
             # Upkeep of agents and check if agent can survive
             agent.upkeep()
@@ -229,16 +229,17 @@ while running:
                 blended_color = tuple(map(lambda x, y: (x + y)/2, food_color, wood_color))
 
             rect = pygame.Rect(row * CELL_SIZE, col * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            draw_rect_alpha(screen, food_color, rect)
+            draw_rect_alpha(screen, blended_color, rect)
     
     # Draw agents
     for agent in agents:
-        x, y = agent.getPos()
-        rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-        pygame.draw.rect(screen, agent.getColor(), rect)
-        # Draw wood and food bars
-        # agent.wood_bar(screen)
-        # agent.food_bar(screen)
+        if agent.isAlive():
+            x, y = agent.getPos()
+            rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+            pygame.draw.rect(screen, agent.getColor(), rect)
+            # Draw wood and food bars
+            # agent.wood_bar(screen)
+            # agent.food_bar(screen)
 
     # Draw the grid
     for x in range(0, SCREEN_WIDTH, CELL_SIZE):
