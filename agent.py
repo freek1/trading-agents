@@ -6,7 +6,7 @@ resources = ['wood', 'food']
 AGENT_TYPE = 'random' # 'random', 'pathfind_neighbor', 'pathfind_market'
 TRADE_THRESHOLD = 1.5
 TRADE_QTY = 1.0
-UPKEEP_COST = 0.02
+UPKEEP_COST = 0.1 # was 0.02
 
 class Agent:
     def __init__(self, id, x, y, color, GRID_WIDTH, GRID_HEIGHT):
@@ -118,7 +118,7 @@ class Agent:
         or self.behaviour == 'trade_food' and agent_B.getBehaviour() == 'trade_wood':
             return True
 
-    def trade(self, agent_B, transaction_cost):
+    def trade(self, agent_B):
         old_color = self.color
         traded_quantity = 0.0
         if self.behaviour == 'trade_wood':
@@ -126,18 +126,18 @@ class Agent:
             while not (self.tradeFinalized() or agent_B.tradeFinalized()):
                 self.color = (0,0,0)
                 self.current_stock['wood'] -= TRADE_QTY
-                agent_B.current_stock['wood'] += TRADE_QTY #- transaction_cost
+                agent_B.current_stock['wood'] += TRADE_QTY
                 agent_B.current_stock['food'] -= TRADE_QTY
-                self.current_stock['food'] += TRADE_QTY #- transaction_cost
+                self.current_stock['food'] += TRADE_QTY
                 traded_quantity += TRADE_QTY
         elif self.behaviour == 'trade_food':
             # Sell food for wood
             while not (self.tradeFinalized() or agent_B.tradeFinalized()):
                 self.color = (0,0,0)
                 self.current_stock['food'] -= TRADE_QTY
-                agent_B.current_stock['food'] += TRADE_QTY #- transaction_cost
+                agent_B.current_stock['food'] += TRADE_QTY
                 agent_B.current_stock['wood'] -= TRADE_QTY
-                self.current_stock['wood'] += TRADE_QTY #- transaction_cost
+                self.current_stock['wood'] += TRADE_QTY
                 traded_quantity += TRADE_QTY
             
         # Return to not trading
