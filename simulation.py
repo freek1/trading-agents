@@ -8,6 +8,12 @@ import copy
 from agent import Agent
 from lifelines import KaplanMeierFitter
 
+# Market, Baseline, 
+SCENARIO = 'Baseline'
+
+# Sides, RandomGrid
+DISTRIBUTION = 'Sides'
+
 def draw_rect_alpha(surface, color, rect):
     ''' Draws a rectangle with an alpha channel
     Input: 
@@ -49,7 +55,6 @@ def take_resource(agent: Agent, chosen_resource, resources, gather_amount):
     x, y = agent.getPos()
     agent.gatherResource(chosen_resource, gather_amount) 
     resources[chosen_resource][x][y] -= gather_amount
-
 
 def able_to_take_resource(agent, chosen_resource, resources):
     ''' Checks if the agent is able to take a resource
@@ -122,6 +127,9 @@ CELL_SIZE = 20
 GRID_WIDTH = 40 
 GRID_HEIGHT = 40
 
+# Grid distribution parameters
+BLOB_SIZE = 3
+
 # Set the dimensions of the screen
 SCREEN_WIDTH = GRID_WIDTH * CELL_SIZE
 SCREEN_HEIGHT = GRID_HEIGHT * CELL_SIZE
@@ -140,22 +148,40 @@ RED  = (255, 25, 25)
 BLUE = (25, 25, 255)
 FOOD_COLOR = (200,100,0)
 
+MIN_WOOD = 0
+MIN_FOOD = 0
 MAX_WOOD = 10
 MAX_FOOD = 10
 # Uniform random distribution of resources
 # wood = [[random.uniform(0, MAX_WOOD) for x in range(4,12)] for y in range(4,12)]
 # food = [[random.uniform(0, MAX_FOOD) for x in range(4,12)] for y in range(4,12)]
 
-# Resources in non-random positions
 wood = np.zeros((GRID_HEIGHT, GRID_WIDTH))
-for i in range(0,GRID_WIDTH):
-    for j in range(0,8):
-        wood[i][j] = random.uniform(5, MAX_WOOD)
-
 food = np.zeros((GRID_HEIGHT, GRID_WIDTH))
-for i in range(0,GRID_WIDTH):
-    for j in range(32,GRID_HEIGHT):
-        food[i][j] = random.uniform(5, MAX_FOOD)
+if DISTRIBUTION == 'Sides':
+    # Resources in non-random positions
+    for x in range(0,GRID_WIDTH):
+        for y in range(0,8):
+            wood[x][y] = random.uniform(5, MAX_WOOD)
+    for x in range(0,GRID_WIDTH):
+        for y in range(32,GRID_HEIGHT):
+            food[x][y] = random.uniform(5, MAX_FOOD)
+elif DISTRIBUTION == 'Uniform':
+    #TODO: uniform distibution, but low resources such that it supports a certain number of agents
+    for x in range(0,GRID_WIDTH):
+        for y in range(0,GRID_HEIGHT):
+            wood[x][y] = random.uniform(MIN_WOOD, MAX_WOOD)
+            food[x][y] = random.uniform(MIN_FOOD, MAX_FOOD)
+elif DISTRIBUTION == 'RandomGrid':
+    # Nog niet af
+    for x in range(0,GRID_WIDTH):
+        for y in range(0,GRID_HEIGHT):
+            if int(x/BLOB_SIZE) % 2 == 0:
+                if random.random() > 0.5:
+                    wood[x][y] = random.uniform(5, MAX_WOOD)
+                else:
+                    food[x][y] = random.uniform(5, MAX_FOOD)
+
 
 maximum_resources = {
     'wood': wood,
@@ -176,7 +202,6 @@ transaction_cost = 0.1
 gather_amount = 1
 
 for i in range(NUM_AGENTS):
-   
     x = random.randint(0, GRID_WIDTH-2)
     y = random.randint(0, GRID_HEIGHT-2)
     color = (255.0,0.0,0.0) if x < GRID_WIDTH/2 else (0.0,255.0,0.0)
@@ -283,8 +308,8 @@ while running:
                 if able_to_take_resource(agent, chosen_resource, resources):
                     take_resource(agent, chosen_resource, resources, gather_amount)
             
-                # Upkeep of agents and check if agent can survive
-                agent.upkeep()
+            # Upkeep of agents and check if agent can survive
+            agent.upkeep()
                 
 
             # Choose behaviour
