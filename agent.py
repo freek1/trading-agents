@@ -1,18 +1,19 @@
 import random
 import pygame
 import numpy as np
+import math
 
 resources = ['wood', 'food']
-# AGENT_TYPE = 'pathfind_market' # 'random', 'pathfind_neighbor', 'pathfind_market'
 TRADE_THRESHOLD = 1.5
 TRADE_QTY = 1.0
 UPKEEP_COST = 0.1 # was 0.02
 
 DARK_BROWN = (60, 40, 0)
 DARK_GREEN = (0, 102, 34)
+PINK = (255, 192, 203)
 
 class Agent:
-    def __init__(self, id, x, y, agent_type, color):
+    def __init__(self, id, x, y, agent_type, color, market):
         self.x = x
         self.y = y
         self.id = id
@@ -37,6 +38,7 @@ class Agent:
         self.agent_type = agent_type
         self.blacklisted_agents = np.array([[-1, -1]]) # List of (x,y) of the blacklisted agents
         self.in_market = False
+        self.market = market
         
     def setInMarket(self, in_market):
         self.in_market = in_market
@@ -53,7 +55,7 @@ class Agent:
     def updateBehaviour(self):
         # Update trade behaviour
         ratio = self.current_stock['wood']/self.current_stock['food']
-        if ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 3:
+        if ratio > TRADE_THRESHOLD and all(i >= 2 for i in self.current_stock.values()):
             self.color = DARK_BROWN
             self.behaviour = 'trade_wood' # means selling wood
             # adapt movement behaviour
@@ -64,7 +66,7 @@ class Agent:
             elif self.agent_type == 'pathfind_market':
                 self.movement = "pathfind_market"
 
-        elif 1/ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 3:
+        elif 1/ratio > TRADE_THRESHOLD and all(i >= 2 for i in self.current_stock.values()):
             self.color = DARK_GREEN
             self.behaviour = 'trade_food' # means selling food
 
@@ -131,9 +133,12 @@ class Agent:
     
    
     def compatible(self, agent_B):
-        if self.behaviour == 'trade_wood' and agent_B.getBehaviour() == 'trade_food' \
-        or self.behaviour == 'trade_food' and agent_B.getBehaviour() == 'trade_wood':
-            return True
+        ''' Compatible if both agents are in market when this is the simulation situation. '''
+        if self.agent_type == 'pathfind_market':
+            if self.in_market and agent_B.in_market:
+                if self.behaviour == 'trade_wood' and agent_B.getBehaviour() == 'trade_food' and self.current_stock['wood'] > agent_B.getCurrentStock('food')+1\
+        or self.behaviour == 'trade_food' and agent_B.getBehaviour() == 'trade_wood' and self.current_stock['food'] > agent_B.getCurrentStock('wood')+1:
+                    return True
 
     def trade(self, agent_B):
         old_color = self.color
@@ -141,8 +146,8 @@ class Agent:
         if self.behaviour == 'trade_wood':
             # Sell wood for food 
             while not (self.tradeFinalized() or agent_B.tradeFinalized()):
-                self.color = (0,0,0)
-                agent_B.setColor = (0,0,0)
+                self.color = PINK
+                agent_B.setColor = PINK
                 self.current_stock['wood'] -= TRADE_QTY
                 agent_B.current_stock['wood'] += TRADE_QTY
                 agent_B.current_stock['food'] -= TRADE_QTY
@@ -151,8 +156,8 @@ class Agent:
         elif self.behaviour == 'trade_food':
             # Sell food for wood
             while not (self.tradeFinalized() or agent_B.tradeFinalized()):
-                self.color = (0,0,0)
-                agent_B.setColor = (0,0,0)
+                self.color = PINK
+                agent_B.setColor = PINK
                 self.current_stock['food'] -= TRADE_QTY
                 agent_B.current_stock['food'] += TRADE_QTY
                 agent_B.current_stock['wood'] -= TRADE_QTY
@@ -179,11 +184,21 @@ class Agent:
 
         # Add element to the blacklist
         if is_unique:
-            print(self.blacklisted_agents, [to_blacklist.tolist()])
             self.blacklisted_agents = np.append(self.blacklisted_agents, [to_blacklist.tolist()], axis=1)
 
         # Remove from the nearest neighbors list (to not search again)
         self.nearest_neighbors = np.delete(self.nearest_neighbors, 0)
+
+    def findNonMarketSquare(self):
+        idx_market_false = np.argwhere(np.invert(self.market))
+        smallest_distance = np.inf
+        x_nmp, y_nmp = 0, 0
+        for x_market, y_market in idx_market_false:
+            distance = math.dist([x_market, y_market], [self.x, self.y])
+            if distance < smallest_distance:
+                smallest_distance = distance
+                x_nmp, y_nmp = x_market, y_market
+        return x_nmp, y_nmp
     
     def tradeFinalized(self):
         # Finalize trade if resource equilibrium is reached (diff < TRADE_QTY)

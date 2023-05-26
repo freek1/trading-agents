@@ -1,10 +1,12 @@
-from matplotlib import pyplot as plt
 import pygame
 import random
 import numpy as np
 import seaborn as sns
 import copy
-from lifelines import KaplanMeierFitter
+import pandas as pd
+import os
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
 
 # Functions file
 from funcs import *
@@ -18,9 +20,13 @@ dt = 0
 fps = 144
 time = 1
 
+RUN_NR = 1
+
+MOVE_PROB = 0.8
+
 # Market, Baseline, 
 SCENARIO = 'Market'
- # 'random', 'pathfind_neighbor', 'pathfind_market'
+# 'random', 'pathfind_neighbor', 'pathfind_market'
 AGENT_TYPE = 'pathfind_market'
 
 # Sides, RandomGrid, Uniform
@@ -59,17 +65,13 @@ MIN_WOOD = 0
 MIN_FOOD = 0
 MAX_WOOD = 2
 MAX_FOOD = 2
-# Uniform random distribution of resources
-# wood = [[random.uniform(0, MAX_WOOD) for x in range(4,12)] for y in range(4,12)]
-# food = [[random.uniform(0, MAX_FOOD) for x in range(4,12)] for y in range(4,12)]
 
-market = np.zeros((GRID_HEIGHT, GRID_WIDTH))
+market = np.full((GRID_HEIGHT, GRID_WIDTH), False, dtype=bool)
 if SCENARIO == 'Market':
     if MARKET_PLACE == 'Middle':
         for x in range(int((GRID_WIDTH/2)-market_size), int((GRID_WIDTH/2)+market_size)):
             for y in range(int((GRID_HEIGHT/2)-market_size), int((GRID_HEIGHT/2)+market_size)):
                 market[x][y] = True
-
 
 wood = np.zeros((GRID_HEIGHT, GRID_WIDTH))
 food = np.zeros((GRID_HEIGHT, GRID_WIDTH))
@@ -134,7 +136,7 @@ for i in range(NUM_AGENTS):
     x = random.randint(0, GRID_WIDTH-2)
     y = random.randint(0, GRID_HEIGHT-2)
     color = (255.0,0.0,0.0) if y < GRID_HEIGHT/2 else (0.0,255.0,0.0)
-    agent = Agent(i, x, y, AGENT_TYPE, color) #color = np.array(agent_colours[i])*255
+    agent = Agent(i, x, y, AGENT_TYPE, color, market) #color = np.array(agent_colours[i])*255
     agents.append(agent)
 
     # Save agent position for the KD-tree
@@ -150,13 +152,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    
-    # DEBUG
-    # if len(agents) < 10:
-    #     fps = 5
-    #     for agent in agents:
-    #         print('pos',agent.getPos(),'wood',agent.getCurrentStock('wood'),'food',agent.getCurrentStock('food'))
-
+            
     # Counting the nr of alive agents for automatic stopping
     nr_agents = 0
 
@@ -244,14 +240,14 @@ while running:
             # closest distance to market
             agent.setClosestMarketPos(findClosestMarketPos(agent, market))
 
-            # Choose step
-            preferred_direction = agent.chooseStep(market)
-            moveAgent(preferred_direction, agent, agents)
+            # Probabalistic movement
+            if random.uniform(0, 1) < MOVE_PROB:
+                # Choose step
+                preferred_direction = agent.chooseStep(market)
+                moveAgent(preferred_direction, agent, agents)
 
-            if in_market(agent, market):
-                agent.setInMarket(True)
-            else:
-                agent.setInMarket(False)
+            # Update market bool
+            agent.setInMarket(in_market(agent, market))
 
             # Distance and indices of 5 nearest neighbors
             dist, idx = positions_tree.query([[x, y]], k=5)
@@ -260,7 +256,6 @@ while running:
 
             # closest distance to market
             agent.setClosestMarketPos(findClosestMarketPos(agent, market))
-
 
             # Update agent position for the KD-tree
             agent_positions[i] = [x, y]
@@ -281,7 +276,6 @@ while running:
     screen.fill(WHITE)
 
     # Draw resources
-    print(f"Total food: {round(np.sum(food), 1)}, wood: {round(np.sum(wood), 1)}")
     for row in range(GRID_HEIGHT):
         for col in range(GRID_WIDTH):
             wood_value = wood[row][col]
@@ -362,20 +356,21 @@ for ev in alive_times:
         ev = int(ev)
         events[ev] = 1
 
-# Result figures
-kmf = KaplanMeierFitter()
-kmf.fit(duration, events)
-km_graph = plt.figure()
-kmf.plot()
-plt.title('Kaplan-Meier curve of agent deaths')
-plt.ylabel('Survival probability')
 
-time_alive_fig = plt.figure()
-plt.bar(np.arange(NUM_AGENTS), np.sort(alive_times))
-plt.plot(np.arange(NUM_AGENTS), np.sort(alive_times), 'k')
-plt.xlabel('Agents')
-plt.ylabel('Time alive [timesteps]')
-plt.title('Time alive distribution of the agents')
+# Saving data to file
+file_path = f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}.csv'
 
-# Keep images open
-plt.show()
+if not os.path.exists(file_path):
+    empty = pd.DataFrame({'ig': [0]*time})
+    empty.to_csv(file_path, index=False)
+
+data = pd.read_csv(file_path)
+
+# Adjust the length of events and alive_times to match the DataFrame index
+events = pad_sequences([events], maxlen=len(data), padding='post', truncating='post', value=-1)[0]
+alive_times = pad_sequences([alive_times], maxlen=len(data), padding='post', truncating='post', value=-1)[0]
+
+# Assign the adjusted events and alive_times to DataFrame columns
+data[f'events-{RUN_NR}'] = events
+data[f'alive_times-{RUN_NR}'] = alive_times
+data.to_csv(file_path, index=False)
