@@ -36,7 +36,7 @@ GRID_WIDTH, GRID_HEIGHT, CELL_SIZE = get_grid_params()
 
 # place and size of market
 MARKET_PLACE = 'Middle'
-market_size = 3
+market_size = 6
 
 # Grid distribution parameters
 BLOB_SIZE = 3
@@ -159,6 +159,8 @@ while running:
     # Update the agents
     for agent in agents:
         if agent.isAlive():
+            agent.updateBehaviour()
+
             nr_agents += 1
             agent.update_time_alive()
             x, y = agent.getPos()
@@ -180,9 +182,9 @@ while running:
                         if agent_B is None:
                             continue
                         if agent.compatible(agent_B):
-                            # print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
-                            # print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
-                            # print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
+                            print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
+                            print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
+                            print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
                             traded_qty = agent.trade(agent_B)
                             traded = True
                             # print(f"  Qty traded: {traded_qty}")
@@ -198,10 +200,9 @@ while running:
                     neighboring_cells = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
                     neighboring_cells.remove((0,0))
                     
-                    while not traded and neighboring_cells:
+                    while not traded and bool(neighboring_cells):
                         dx, dy = random.choice(neighboring_cells)
                         neighboring_cells.remove((dx, dy))
-
                         if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT and [x+dx, y+dy] in market_idx:
                             x_check = agent.getPos()[0] + dx
                             y_check = agent.getPos()[1] + dy
@@ -209,22 +210,28 @@ while running:
                             if agent_B is None:
                                 continue
                             if agent.compatible(agent_B):
-                                # print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
-                                # print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
-                                # print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
-                                traded_qty = agent.trade(agent_B)
+                                print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
+                                print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
+                                print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
+                                traded_qty = agent.trade(agent_B)               
+                                agent.updateBehaviour()
+                                agent_B.updateBehaviour()
+                                print(f"  Qty traded: {traded_qty}")
+                                print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
+                                print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
                                 traded = True
-                                # print(f"  Qty traded: {traded_qty}")
+                        
+
 
                     if traded:
                         agent.set_movement = 'random' 
 
-                else:
-                    agent.set_movment = 'pathfind_market'
+                # else:
+                #     agent.set_movment = 'pathfind_market'
 
             # Update the resource gathering
             else:
-                chosen_resource = choose_resource(agent, resources, gather_amount) # make agent choose which resource to gather based on it's predisposition
+                chosen_resource = choose_resource(agent, resources, gather_amount) # make agent choose which resource to gather 
                 #if able_to_take_resource(agent, chosen_resource, resources):
                 take_resource(agent, chosen_resource, resources, gather_amount)
             
@@ -234,8 +241,8 @@ while running:
             # closest distance to market
             agent.setClosestMarketPos(findClosestMarketPos(agent, market))
 
-            # Choose behaviour
-            agent.updateBehaviour() # Agent brain
+            # # Choose behaviour
+            # agent.updateBehaviour() # Agent brain
 
             # closest distance to market
             agent.setClosestMarketPos(findClosestMarketPos(agent, market))

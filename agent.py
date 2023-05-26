@@ -5,7 +5,7 @@ import math
 
 resources = ['wood', 'food']
 TRADE_THRESHOLD = 1.5
-TRADE_QTY = 1.0
+TRADE_QTY = 1
 UPKEEP_COST = 0.1 # was 0.02
 
 DARK_BROWN = (60, 40, 0)
@@ -55,27 +55,19 @@ class Agent:
     def updateBehaviour(self):
         # Update trade behaviour
         ratio = self.current_stock['wood']/self.current_stock['food']
-        if ratio > TRADE_THRESHOLD and all(i >= 2 for i in self.current_stock.values()):
+        if ratio > TRADE_THRESHOLD and all(i >= TRADE_QTY for i in list(self.current_stock.values())) and abs(self.current_stock['wood'] - self.current_stock['food']) >= TRADE_QTY:
             self.color = DARK_BROWN
             self.behaviour = 'trade_wood' # means selling wood
             # adapt movement behaviour
-            if self.agent_type == 'random':
-                self.movement = "random"
-            elif self.agent_type == 'pathfind_neighbor':
-                self.movement = "pathfind_neighbor"
-            elif self.agent_type == 'pathfind_market':
-                self.movement = "pathfind_market"
+            self.movement   = self.agent_type
 
-        elif 1/ratio > TRADE_THRESHOLD and all(i >= 2 for i in self.current_stock.values()):
+        elif 1/ratio > TRADE_THRESHOLD and all(i >= TRADE_QTY for i in list(self.current_stock.values())) and abs(self.current_stock['wood'] - self.current_stock['food']) >= TRADE_QTY:
             self.color = DARK_GREEN
             self.behaviour = 'trade_food' # means selling food
-
-            if self.agent_type == 'random':
-                self.movement = "random"
-            elif self.agent_type == 'pathfind_neighbor':
-                self.movement = "pathfind_neighbor"
-            elif self.agent_type == 'pathfind_market':
-                self.movement = "pathfind_market"
+            self.movement   = self.agent_type
+        else:
+            self.behaviour = ''
+            self.movement = 'random'
     
     def chooseStep(self, market):
         ''' Pick the next direction to walk in for the agent
@@ -136,9 +128,11 @@ class Agent:
         ''' Compatible if both agents are in market when this is the simulation situation. '''
         if self.agent_type == 'pathfind_market':
             if self.in_market and agent_B.in_market:
-                if self.behaviour == 'trade_wood' and agent_B.getBehaviour() == 'trade_food' and self.current_stock['wood'] > agent_B.getCurrentStock('food')+1\
-        or self.behaviour == 'trade_food' and agent_B.getBehaviour() == 'trade_wood' and self.current_stock['food'] > agent_B.getCurrentStock('wood')+1:
+                if self.behaviour == 'trade_wood' and agent_B.getBehaviour() == 'trade_food'\
+            or self.behaviour == 'trade_food' and agent_B.getBehaviour() == 'trade_wood':
                     return True
+        else:
+            return False
 
     def trade(self, agent_B):
         old_color = self.color
@@ -163,9 +157,6 @@ class Agent:
                 agent_B.current_stock['wood'] -= TRADE_QTY
                 self.current_stock['wood'] += TRADE_QTY
                 traded_quantity += TRADE_QTY
-            
-        # Return to not trading
-        self.behaviour = ''
 
         return traded_quantity
     
@@ -202,7 +193,10 @@ class Agent:
     
     def tradeFinalized(self):
         # Finalize trade if resource equilibrium is reached (diff < TRADE_QTY)
-        return abs(self.current_stock['wood'] - self.current_stock['food']) <= TRADE_QTY
+        if abs(self.current_stock['wood'] - self.current_stock['food']) <= TRADE_QTY:
+            self.behaviour = ''
+            self.movement = 'random'
+            return True
 
     def addWoodLocation(self, pos):
         if pos not in self.wood_locations:
