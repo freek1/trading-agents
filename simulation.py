@@ -20,14 +20,16 @@ dt = 0
 fps = 144
 time = 1
 
-RUN_NR = 1
+RUN_NR = 3
 
 MOVE_PROB = 0.8
 
 # Market, Baseline, 
-SCENARIO = 'Market'
+SCENARIO = 'Baseline'
 # 'random', 'pathfind_neighbor', 'pathfind_market'
-AGENT_TYPE = 'pathfind_market'
+AGENT_TYPE = 'random'
+# trading switch
+TRADING = True
 
 # Sides, RandomGrid, Uniform
 DISTRIBUTION = 'RandomGrid'
@@ -168,42 +170,15 @@ while running:
             pygame.draw.rect(screen, agent.getColor(), rect)
             
             # Do agent behaviour
-            if (agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food') and SCENARIO == 'Baseline':
-                traded = False
-                neighboring_cells = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
-                neighboring_cells.remove((0,0))
-                while not traded and neighboring_cells:
-                    dx, dy = random.choice(neighboring_cells)
-                    neighboring_cells.remove((dx, dy))
-                    if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
-                        x_check = agent.getPos()[0] + dx
-                        y_check = agent.getPos()[1] + dy
-                        occupied, agent_B = cellAvailable(x_check, y_check, agents)
-                        if agent_B is None:
-                            continue
-                        if agent.compatible(agent_B):
-                            print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
-                            print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
-                            print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
-                            traded_qty = agent.trade(agent_B)
-                            traded = True
-                            # print(f"  Qty traded: {traded_qty}")
-                            agent.clearBlacklistedAgents()
-                        else:
-                            # If not compatible, find next nearest neighbor
-                            agent.removeClosestNeighbor()
-
-            elif (agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food') and SCENARIO == 'Market':
-                market_idx = np.argwhere(market)
-                if [x, y] in market_idx:
+            if TRADING:
+                if (agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food') and SCENARIO == 'Baseline':
                     traded = False
                     neighboring_cells = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
                     neighboring_cells.remove((0,0))
-                    
-                    while not traded and bool(neighboring_cells):
+                    while not traded and neighboring_cells:
                         dx, dy = random.choice(neighboring_cells)
                         neighboring_cells.remove((dx, dy))
-                        if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT and [x+dx, y+dy] in market_idx:
+                        if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
                             x_check = agent.getPos()[0] + dx
                             y_check = agent.getPos()[1] + dy
                             occupied, agent_B = cellAvailable(x_check, y_check, agents)
@@ -211,26 +186,51 @@ while running:
                                 continue
                             if agent.compatible(agent_B):
                                 print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
-                                print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
-                                print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
-                                traded_qty = agent.trade(agent_B)               
-                                agent.updateBehaviour()
-                                agent_B.updateBehaviour()
-                                print(f"  Qty traded: {traded_qty}")
-                                print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
-                                print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
+                                print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
+                                print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
+                                traded_qty = agent.trade(agent_B)
                                 traded = True
+                                # print(f"  Qty traded: {traded_qty}")
+                                agent.clearBlacklistedAgents()
+                            else:
+                                # If not compatible, find next nearest neighbor
+                                if AGENT_TYPE == 'pathfind_neighbor':
+                                    agent.removeClosestNeighbor()
+
+                elif (agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food') and SCENARIO == 'Market':
+                    market_idx = np.argwhere(market)
+                    if [x, y] in market_idx:
+                        traded = False
+                        neighboring_cells = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
+                        neighboring_cells.remove((0,0))
                         
+                        while not traded and bool(neighboring_cells):
+                            dx, dy = random.choice(neighboring_cells)
+                            neighboring_cells.remove((dx, dy))
+                            if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT and [x+dx, y+dy] in market_idx:
+                                x_check = agent.getPos()[0] + dx
+                                y_check = agent.getPos()[1] + dy
+                                occupied, agent_B = cellAvailable(x_check, y_check, agents)
+                                if agent_B is None:
+                                    continue
+                                if agent.compatible(agent_B):
+                                    print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
+                                    print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
+                                    print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
+                                    traded_qty = agent.trade(agent_B)               
+                                    agent.updateBehaviour()
+                                    agent_B.updateBehaviour()
+                                    print(f"  Qty traded: {traded_qty}")
+                                    print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
+                                    print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
+                                    traded = True
+                            
 
 
-                    if traded:
-                        agent.set_movement = 'random' 
+                        if traded:
+                            agent.set_movement = 'random' 
 
-                # else:
-                #     agent.set_movment = 'pathfind_market'
-
-            # Update the resource gathering
-            else:
+                # Update the resource gathering
                 chosen_resource = choose_resource(agent, resources, gather_amount) # make agent choose which resource to gather 
                 #if able_to_take_resource(agent, chosen_resource, resources):
                 take_resource(agent, chosen_resource, resources, gather_amount)
@@ -365,7 +365,7 @@ for ev in alive_times:
 
 
 # Saving data to file
-file_path = f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}.csv'
+file_path = f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}.csv'
 
 if not os.path.exists(file_path):
     empty = pd.DataFrame({'ignore': [0]*time})
