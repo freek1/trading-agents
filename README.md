@@ -19,7 +19,7 @@ level of resource production specialization within the population?
 #### Measurement: 
 Kaplan-Meier survival distribution graph (KM-graph).
 
-![Example Kaplan-Meier survival graph](/imgs/km-curve.png)
+![Example Kaplan-Meier survival graph](/imgs/Market-pathfind_market-RandomGrid-200.png)
 
 #### Situations: 
 | Situations | Description |
