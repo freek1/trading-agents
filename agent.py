@@ -3,15 +3,16 @@ import pygame
 import numpy as np
 
 resources = ['wood', 'food']
-AGENT_TYPE = 'pathfind_neighbor' # 'random', 'pathfind_neighbor', 'pathfind_market'
+# AGENT_TYPE = 'pathfind_market' # 'random', 'pathfind_neighbor', 'pathfind_market'
 TRADE_THRESHOLD = 1.5
 TRADE_QTY = 1.0
 UPKEEP_COST = 0.1 # was 0.02
 
+DARK_BROWN = (60, 40, 0)
+DARK_GREEN = (0, 102, 34)
+
 class Agent:
-    def __init__(self, id, x, y, agent_type, color, GRID_WIDTH, GRID_HEIGHT):
-        self.GRID_WIDTH = GRID_WIDTH
-        self.GRID_HEIGHT = GRID_HEIGHT
+    def __init__(self, id, x, y, agent_type, color):
         self.x = x
         self.y = y
         self.id = id
@@ -35,7 +36,11 @@ class Agent:
         self.closest_market_pos = (None, None)
         self.agent_type = agent_type
         self.blacklisted_agents = np.array([[-1, -1]]) # List of (x,y) of the blacklisted agents
+        self.in_market = False
         
+    def setInMarket(self, in_market):
+        self.in_market = in_market
+
     def update_time_alive(self):
         self.time_alive += 1
 
@@ -48,7 +53,8 @@ class Agent:
     def updateBehaviour(self):
         # Update trade behaviour
         ratio = self.current_stock['wood']/self.current_stock['food']
-        if ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
+        if ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 3:
+            self.color = DARK_BROWN
             self.behaviour = 'trade_wood' # means selling wood
             # adapt movement behaviour
             if self.agent_type == 'random':
@@ -58,7 +64,8 @@ class Agent:
             elif self.agent_type == 'pathfind_market':
                 self.movement = "pathfind_market"
 
-        elif 1/ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 5:
+        elif 1/ratio > TRADE_THRESHOLD and sum(self.current_stock.values()) > 3:
+            self.color = DARK_GREEN
             self.behaviour = 'trade_food' # means selling food
 
             if self.agent_type == 'random':
@@ -100,6 +107,10 @@ class Agent:
 
         if self.movement == 'pathfind_market':
             self.goal_position = self.closest_market_pos
+            if self.in_market:
+                self.movement = 'random'
+            else:
+                self.movement = 'pathfind_market'
         
         # move
         if 'pathfind' in self.movement:

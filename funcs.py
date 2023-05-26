@@ -139,3 +139,7 @@ def findClosestMarketPos(agent: Agent, market):
             smallest_distance = distance
             x_cmp, y_cmp = x_market, y_market
     return x_cmp, y_cmp
+
+def in_market(agent: Agent, market):
+    x, y = agent.getPos()
+    return market[x][y]

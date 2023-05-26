@@ -11,7 +11,6 @@ from funcs import *
 # Agent class
 from agent import Agent
 
-
 # Initialize Pygame
 pygame.init()
 clock = pygame.time.Clock()
@@ -22,17 +21,16 @@ time = 1
 # Market, Baseline, 
 SCENARIO = 'Market'
  # 'random', 'pathfind_neighbor', 'pathfind_market'
-AGENT_TYPE = 'random'
+AGENT_TYPE = 'pathfind_market'
 
 # Sides, RandomGrid, Uniform
-DISTRIBUTION = 'Sides'
+DISTRIBUTION = 'RandomGrid'
 
 GRID_WIDTH, GRID_HEIGHT, CELL_SIZE = get_grid_params()
 
-
-#place and size of market
+# place and size of market
 MARKET_PLACE = 'Middle'
-market_size = 3
+market_size = 4
 
 # Grid distribution parameters
 BLOB_SIZE = 3
@@ -136,7 +134,7 @@ for i in range(NUM_AGENTS):
     x = random.randint(0, GRID_WIDTH-2)
     y = random.randint(0, GRID_HEIGHT-2)
     color = (255.0,0.0,0.0) if y < GRID_HEIGHT/2 else (0.0,255.0,0.0)
-    agent = Agent(i, x, y, AGENT_TYPE, color, GRID_WIDTH, GRID_HEIGHT) #color = np.array(agent_colours[i])*255
+    agent = Agent(i, x, y, AGENT_TYPE, color) #color = np.array(agent_colours[i])*255
     agents.append(agent)
 
     # Save agent position for the KD-tree
@@ -209,18 +207,22 @@ while running:
             # Choose behaviour
             agent.updateBehaviour() # Agent brain
 
+            # closest distance to market
+            agent.setClosestMarketPos(findClosestMarketPos(agent, market))
+
             # Choose step
             preferred_direction = agent.chooseStep()
             moveAgent(preferred_direction, agent, agents)
+
+            if in_market(agent, market):
+                agent.setInMarket(True)
+            else:
+                agent.setInMarket(False)
 
             # Distance and indices of 5 nearest neighbors
             dist, idx = positions_tree.query([[x, y]], k=5)
             # Coordinates of 5 nearest neighbors as param
             agent.setNearestNeighbors(agent_positions[idx][0])
-
-            # closest distance to market
-            agent.setClosestMarketPos(findClosestMarketPos(agent, market))
-
 
             # Update agent position for the KD-tree
             agent_positions[i] = [x, y]
