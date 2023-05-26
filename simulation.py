@@ -152,7 +152,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-            
+
     # Counting the nr of alive agents for automatic stopping
     nr_agents = 0
 
@@ -180,12 +180,12 @@ while running:
                         if agent_B is None:
                             continue
                         if agent.compatible(agent_B):
-                            print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
-                            print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
-                            print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
+                            # print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
+                            # print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
+                            # print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
                             traded_qty = agent.trade(agent_B)
                             traded = True
-                            print(f"  Qty traded: {traded_qty}")
+                            # print(f"  Qty traded: {traded_qty}")
                             agent.clearBlacklistedAgents()
                         else:
                             # If not compatible, find next nearest neighbor
@@ -209,12 +209,12 @@ while running:
                             if agent_B is None:
                                 continue
                             if agent.compatible(agent_B):
-                                print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
-                                print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
-                                print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
+                                # print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
+                                # print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
+                                # print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
                                 traded_qty = agent.trade(agent_B)
                                 traded = True
-                                print(f"  Qty traded: {traded_qty}")
+                                # print(f"  Qty traded: {traded_qty}")
 
                     if traded:
                         agent.set_movement = 'random' 
@@ -361,7 +361,7 @@ for ev in alive_times:
 file_path = f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}.csv'
 
 if not os.path.exists(file_path):
-    empty = pd.DataFrame({'ig': [0]*time})
+    empty = pd.DataFrame({'ignore': [0]*time})
     empty.to_csv(file_path, index=False)
 
 data = pd.read_csv(file_path)
