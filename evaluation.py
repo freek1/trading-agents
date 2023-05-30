@@ -1,15 +1,15 @@
 import numpy as np
-from lifelines import KaplanMeierFitter
+from lifelines import KaplanMeierFitter, CoxPHFitter
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import glob
 
 SCENARIO = 'Baseline'
-AGENT_TYPE = 'random'
+AGENT_TYPE = 'pathfind_neighbor'
 DISTRIBUTION = 'RandomGrid'
 NUM_AGENTS = 200
-TRADING = False
+TRADING = True
 
 data = pd.read_csv(f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}.csv')
 
@@ -20,11 +20,16 @@ km_graph = plt.figure()
 
 mean_survival_probs = []
 
-for run_nr in range(1, amt_runs + 1):
-    time = len(data[data.columns[0]])
-    duration = np.arange(time)
+time = len(data[data.columns[0]])
+duration = np.arange(time)
+coxphdata = pd.DataFrame({'duration': duration})
+
+for run_nr in range(1, amt_runs + 1):   
     events = data[f'events-{run_nr}']
     alive_times = data[f'alive_times-{run_nr}'][:NUM_AGENTS]
+
+    # Save data for cox ph analysis
+    coxphdata[f'events-{run_nr}'] = events
 
     # Compute survival probabilities for each run
     kmf = KaplanMeierFitter()
@@ -54,6 +59,12 @@ plt.savefig(f'imgs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}
 plt.show()
 
 
+print(coxphdata)
+cph = CoxPHFitter()
+cph.fit(coxphdata, 'duration', 'events-1')
+cph.print_summary()
+# TODO: Do this but for comparison between mean survival probs in different situations.
+
 # Comparing multiple situations
 path = os.getcwd()
 csv_files = glob.glob(os.path.join(path, "eval/*.csv"))
@@ -75,7 +86,7 @@ for f in csv_files:
     desired_part = '-'.join(parts[:3])
     names.append(desired_part)
 
-names = ['Trading = False', 'Trading = True']
+names = ['Pathfind-neighbor', 'Trading = False', 'Trading = True']
 for i in range(len(msp_situation)):
     plt.plot(np.arange(len(msp_situation[i])), msp_situation[i], label=f'{names[i]}')
 

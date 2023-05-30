@@ -33,7 +33,7 @@ class Agent:
         self.behaviour = '',  # 'trade_wood', 'trade_food'
         self.movement = 'random' # initialize as random for all agent types, since their movement changes only when wanting to trade
         self.goal_position = (None, None)  # x, y
-        self.nearest_neighbors = [] # List of (x,y) of the nearest neighbors
+        self.nearest_neighbors = np.array([[-1, -1]]) # List of (x,y) of the nearest neighbors
         self.closest_market_pos = (None, None)
         self.agent_type = agent_type
         self.blacklisted_agents = np.array([[-1, -1]]) # List of (x,y) of the blacklisted agents
