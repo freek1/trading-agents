@@ -25,14 +25,19 @@ RUN_NR = 3
 MOVE_PROB = 0.8
 
 # Market, Baseline, 
-SCENARIO = 'Baseline'
+SCENARIO = 'Market'
 # 'random', 'pathfind_neighbor', 'pathfind_market'
-AGENT_TYPE = 'random'
+AGENT_TYPE = 'pathfind_market'
 # trading switch
 TRADING = True
 
-# Sides, RandomGrid, Uniform
-DISTRIBUTION = 'RandomGrid'
+# Resource distribution parameters
+DISTRIBUTION = 'RandomGrid' # Sides, RandomGrid, Uniform
+regen_active = True
+MAX_WOOD = 2
+MAX_FOOD = 2
+#MIN_WOOD = 0  # Not used anymore
+#MIN_FOOD = 0
 
 GRID_WIDTH, GRID_HEIGHT, CELL_SIZE = get_grid_params()
 
@@ -62,12 +67,6 @@ BLUE = (25, 25, 255)
 FOOD_COLOR = (200,100,0)
 YELLOW = (255, 255, 0)
 
-
-MIN_WOOD = 0
-MIN_FOOD = 0
-MAX_WOOD = 2
-MAX_FOOD = 2
-
 market = np.full((GRID_HEIGHT, GRID_WIDTH), False, dtype=bool)
 if SCENARIO == 'Market':
     if MARKET_PLACE == 'Middle':
@@ -77,57 +76,72 @@ if SCENARIO == 'Market':
 
 wood = np.zeros((GRID_HEIGHT, GRID_WIDTH))
 food = np.zeros((GRID_HEIGHT, GRID_WIDTH))
+
+# number of resource cells
+wood_cell_count = 0 
+food_cell_count = 0
+
 if DISTRIBUTION == 'Sides':
     # Resources in non-random positions
     for x in range(0,GRID_WIDTH):
         for y in range(0,8):
-            if market[x][y]:
-                pass
-            else:
-                wood[x][y] = random.uniform(MIN_WOOD, MAX_WOOD)
+            if not market[x][y]:
+                wood_cell_count += 1
+                wood[x][y] = MAX_WOOD  #random.uniform(MIN_WOOD, MAX_WOOD)
     for x in range(0,GRID_WIDTH):
         for y in range(32,GRID_HEIGHT):
-            if market[x][y]:
-                pass
-            else:
-                food[x][y] = random.uniform(MIN_FOOD, MAX_FOOD)
+            if not market[x][y]:
+                food_cell_count += 1
+                food[x][y] = MAX_FOOD  #random.uniform(MIN_FOOD, MAX_FOOD)
 
 elif DISTRIBUTION == 'Uniform':
     #TODO: uniform distibution, but low resources such that it supports a certain number of agents
     for x in range(0,GRID_WIDTH):
         for y in range(0,GRID_HEIGHT):
-            if market[x][y]:
-                pass
-            else:
-                wood[x][y] = random.uniform(MIN_WOOD, MAX_WOOD)
-                food[x][y] = random.uniform(MIN_FOOD, MAX_FOOD)
+            if not market[x][y]:
+                wood_cell_count += 1
+                food_cell_count += 1
+                wood[x][y] = MAX_WOOD  #random.uniform(MIN_WOOD, MAX_WOOD)
+                food[x][y] = MAX_FOOD  #random.uniform(MIN_FOOD, MAX_FOOD)
 
 elif DISTRIBUTION == 'RandomGrid':
-    # Nog niet af
     for x in range(0,GRID_WIDTH):
         for y in range(0,GRID_HEIGHT):
-            if market[x][y]:
-                pass
-            elif int(x/BLOB_SIZE) % 2 == 0:
+            if not market[x][y] and int(x/BLOB_SIZE) % 2 == 0 and int(y/BLOB_SIZE) % 2 == 0:
                 if random.random() > 0.5:
-                    wood[x][y] = random.uniform(MIN_WOOD, MAX_WOOD)
+                    wood_cell_count += 1
+                    wood[x][y] = MAX_WOOD  #random.uniform(MIN_WOOD, MAX_WOOD)
                 else:
-                    food[x][y] = random.uniform(MIN_FOOD, MAX_FOOD)
+                    food_cell_count += 1
+                    food[x][y] = MAX_FOOD  #random.uniform(MIN_FOOD, MAX_FOOD)
+
+total_food_regen = 2.1
+total_wood_regen = 2.1
+initial_food_qty = 420
+initial_wood_qty = 420
+initial_food_qty_cell = initial_food_qty / food_cell_count
+initial_wood_qty_cell = initial_wood_qty / wood_cell_count
+# normalize resource regeneration such that the total regen. is same regardless of number of resource cells)
+food_regen_rate = total_food_regen / food_cell_count
+wood_regen_rate = total_wood_regen / wood_cell_count
+# normalize initial quantities
+for x in range(0,GRID_WIDTH):
+    for y in range(0,GRID_HEIGHT):
+        if food[x][y] > 0:
+            food[x][y] = initial_food_qty_cell
+        if wood[x][y] > 0:
+            wood[x][y] = initial_wood_qty_cell
 
 resources = {
     'wood': wood,
     'food': food,
 }
-
 max_resources = copy.deepcopy(resources)
 
 # Set up the agents
 NUM_AGENTS = 200
 agents = []
 agent_colours = sns.color_palette('bright', n_colors=NUM_AGENTS)
-
-regen_amount = 0.005
-regen_active = True
 
 gather_amount = 1.0
 
@@ -185,9 +199,9 @@ while running:
                             if agent_B is None:
                                 continue
                             if agent.compatible(agent_B):
-                                print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
-                                print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
-                                print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
+                                # print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
+                                # print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
+                                # print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
                                 traded_qty = agent.trade(agent_B)
                                 traded = True
                                 # print(f"  Qty traded: {traded_qty}")
@@ -196,7 +210,6 @@ while running:
                                 # If not compatible, find next nearest neighbor
                                 if AGENT_TYPE == 'pathfind_neighbor':
                                     agent.removeClosestNeighbor()
-
                 elif (agent.getBehaviour() == 'trade_wood' or agent.getBehaviour() == 'trade_food') and SCENARIO == 'Market':
                     market_idx = np.argwhere(market)
                     if [x, y] in market_idx:
@@ -214,15 +227,15 @@ while running:
                                 if agent_B is None:
                                     continue
                                 if agent.compatible(agent_B):
-                                    print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
-                                    print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
-                                    print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
+                                    # print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
+                                    # print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
+                                    # print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
                                     traded_qty = agent.trade(agent_B)               
                                     agent.updateBehaviour()
                                     agent_B.updateBehaviour()
-                                    print(f"  Qty traded: {traded_qty}")
-                                    print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
-                                    print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
+                                    # print(f"  Qty traded: {traded_qty}")
+                                    # print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
+                                    # print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
                                     traded = True
                             
 
@@ -272,10 +285,11 @@ while running:
 
     if regen_active:
         for resource in resources:
+            regen_rate = food_regen_rate if resource == 'food' else wood_regen_rate  # get regen_rate for specific resource
             for y in range(GRID_HEIGHT):
                 for x in range(GRID_WIDTH):
-                    if resources[resource][x][y] < max_resources[resource][x][y] - regen_amount:
-                        resources[resource][x][y] += regen_amount
+                    if resources[resource][x][y] < max_resources[resource][x][y] - regen_rate:
+                        resources[resource][x][y] += regen_rate
                     else:
                         resources[resource][x][y] = max_resources[resource][x][y]  # Set to max
     
@@ -292,27 +306,27 @@ while running:
             if old_rendering:
                 wood_color = DARK_BROWN if wood_value > 7.5 else LIGHT_BROWN if wood_value > 5 else BROWN if wood_value > 0 else WHITE
                 food_color = DARK_GREEN if food_value > 7.5 else LIGHT_GREEN if food_value > 5 else GREEN if food_value > 0 else WHITE
-
                 blended_color = (
                     max(min(255, int((wood_color[0] * wood_value + food_color[0] * food_value) / (wood_value + food_value + 1))), 0),
                     max(min(255, int((wood_color[1] * wood_value + food_color[1] * food_value) / (wood_value + food_value + 1))), 0),
                     max(min(255, int((wood_color[2] * wood_value + food_color[2] * food_value) / (wood_value + food_value + 1))), 0),
                     max(min(255, int(max(wood_value, food_value)*25)), 0)
                 )
-
-            if market[row][col]:
-                blended_color = YELLOW
-
             else:
-                inv_food_color = tuple(map(lambda i, j: i - j, WHITE, DARK_GREEN))
-                food_percentage = (food_value/MAX_FOOD)
-                inv_food_color = tuple(map(lambda i: i * food_percentage, inv_food_color))
-                food_color = tuple(map(lambda i, j: i - j, WHITE, inv_food_color))
-                inv_wood_color = tuple(map(lambda i, j: i - j, WHITE, BROWN))
-                wood_percentage = (wood_value/MAX_WOOD)
-                inv_wood_color = tuple(map(lambda i: i * wood_percentage, inv_wood_color))
-                wood_color = tuple(map(lambda i, j: i - j, WHITE, inv_wood_color))
-                blended_color = tuple(map(lambda x, y: (x + y)/2, food_color, wood_color))
+                if market[row][col]:
+                    blended_color = YELLOW
+                else:
+                    inv_food_color = tuple(map(lambda i, j: i - j, WHITE, DARK_GREEN))
+                    food_percentage = (food_value/initial_food_qty_cell)
+                    if row == 0 and col == 0:
+                        print(f"{food_percentage=} = {food_value=} {initial_food_qty_cell=}")
+                    inv_food_color = tuple(map(lambda i: i * food_percentage, inv_food_color))
+                    food_color = tuple(map(lambda i, j: i - j, WHITE, inv_food_color))
+                    inv_wood_color = tuple(map(lambda i, j: i - j, WHITE, BROWN))
+                    wood_percentage = (wood_value/initial_wood_qty_cell)
+                    inv_wood_color = tuple(map(lambda i: i * wood_percentage, inv_wood_color))
+                    wood_color = tuple(map(lambda i, j: i - j, WHITE, inv_wood_color))
+                    blended_color = tuple(map(lambda x, y: (x + y)/2, food_color, wood_color))
 
             rect = pygame.Rect(row * CELL_SIZE, col * CELL_SIZE, CELL_SIZE, CELL_SIZE)
             draw_rect_alpha(screen, blended_color, rect)
