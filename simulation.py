@@ -327,8 +327,8 @@ while running:
                 else:
                     inv_food_color = tuple(map(lambda i, j: i - j, WHITE, DARK_GREEN))
                     food_percentage = (food_value/initial_food_qty_cell)
-                    if row == 0 and col == 0:
-                        print(f"{food_percentage=} = {food_value=} {initial_food_qty_cell=}")
+                    #if row == 0 and col == 0:
+                    #    print(f"{food_percentage=} = {food_value=} {initial_food_qty_cell=}")
                     inv_food_color = tuple(map(lambda i: i * food_percentage, inv_food_color))
                     food_color = tuple(map(lambda i, j: i - j, WHITE, inv_food_color))
                     inv_wood_color = tuple(map(lambda i, j: i - j, WHITE, BROWN))
