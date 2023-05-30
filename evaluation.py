@@ -6,10 +6,10 @@ import os
 import glob
 
 SCENARIO = 'Baseline'
-AGENT_TYPE = 'random'
+AGENT_TYPE = 'pathfind_neighbor'
 DISTRIBUTION = 'RandomGrid'
 NUM_AGENTS = 200
-TRADING = False
+TRADING = True
 
 data = pd.read_csv(f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}.csv')
 
@@ -75,7 +75,7 @@ for f in csv_files:
     desired_part = '-'.join(parts[:3])
     names.append(desired_part)
 
-names = ['Trading = False', 'Trading = True']
+names = ['Pathfind-neighbor', 'Trading = False', 'Trading = True']
 for i in range(len(msp_situation)):
     plt.plot(np.arange(len(msp_situation[i])), msp_situation[i], label=f'{names[i]}')
 

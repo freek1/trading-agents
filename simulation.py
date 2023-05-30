@@ -20,6 +20,8 @@ dt = 0
 fps = 144
 time = 1
 
+SAVE_TO_FILE = False
+
 RUN_NR = 3
 
 MOVE_PROB = 0.8
@@ -27,7 +29,7 @@ MOVE_PROB = 0.8
 # Market, Baseline, 
 SCENARIO = 'Baseline'
 # 'random', 'pathfind_neighbor', 'pathfind_market'
-AGENT_TYPE = 'random'
+AGENT_TYPE = 'pathfind_neighbor'
 # trading switch
 TRADING = True
 
@@ -256,10 +258,17 @@ while running:
             # Update market bool
             agent.setInMarket(in_market(agent, market))
 
-            # Distance and indices of 5 nearest neighbors
+            # Distance and indices of 5 nearest neighbors within view radius
+            view_radius = 20
             dist, idx = positions_tree.query([[x, y]], k=5)
-            # Coordinates of 5 nearest neighbors as param
-            agent.setNearestNeighbors(agent_positions[idx][0])
+            for i, d in enumerate(dist[0]):
+                if d > view_radius:
+                    # neighbors_too_far += 1
+                    np.delete(dist, i)
+                    np.delete(idx, i)
+            
+            if len(idx) > 0:
+                agent.setNearestNeighbors(agent_positions[idx][0])
 
             # closest distance to market
             agent.setClosestMarketPos(findClosestMarketPos(agent, market))
@@ -363,21 +372,21 @@ for ev in alive_times:
         ev = int(ev)
         events[ev] = 1
 
+if SAVE_TO_FILE:
+    # Saving data to file
+    file_path = f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}.csv'
 
-# Saving data to file
-file_path = f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}.csv'
+    if not os.path.exists(file_path):
+        empty = pd.DataFrame({'ignore': [0]*time})
+        empty.to_csv(file_path, index=False)
 
-if not os.path.exists(file_path):
-    empty = pd.DataFrame({'ignore': [0]*time})
-    empty.to_csv(file_path, index=False)
+    data = pd.read_csv(file_path)
 
-data = pd.read_csv(file_path)
+    # Adjust the length of events and alive_times to match the DataFrame index
+    events = pad_sequences([events], maxlen=len(data), padding='post', truncating='post', value=-1)[0]
+    alive_times = pad_sequences([alive_times], maxlen=len(data), padding='post', truncating='post', value=-1)[0]
 
-# Adjust the length of events and alive_times to match the DataFrame index
-events = pad_sequences([events], maxlen=len(data), padding='post', truncating='post', value=-1)[0]
-alive_times = pad_sequences([alive_times], maxlen=len(data), padding='post', truncating='post', value=-1)[0]
-
-# Assign the adjusted events and alive_times to DataFrame columns
-data[f'events-{RUN_NR}'] = events
-data[f'alive_times-{RUN_NR}'] = alive_times
-data.to_csv(file_path, index=False)
+    # Assign the adjusted events and alive_times to DataFrame columns
+    data[f'events-{RUN_NR}'] = events
+    data[f'alive_times-{RUN_NR}'] = alive_times
+    data.to_csv(file_path, index=False)
