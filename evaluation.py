@@ -1,5 +1,5 @@
 import numpy as np
-from lifelines import KaplanMeierFitter
+from lifelines import KaplanMeierFitter, CoxPHFitter
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
@@ -20,11 +20,16 @@ km_graph = plt.figure()
 
 mean_survival_probs = []
 
-for run_nr in range(1, amt_runs + 1):
-    time = len(data[data.columns[0]])
-    duration = np.arange(time)
+time = len(data[data.columns[0]])
+duration = np.arange(time)
+coxphdata = pd.DataFrame({'duration': duration})
+
+for run_nr in range(1, amt_runs + 1):   
     events = data[f'events-{run_nr}']
     alive_times = data[f'alive_times-{run_nr}'][:NUM_AGENTS]
+
+    # Save data for cox ph analysis
+    coxphdata[f'events-{run_nr}'] = events
 
     # Compute survival probabilities for each run
     kmf = KaplanMeierFitter()
@@ -53,6 +58,12 @@ plt.legend()
 plt.savefig(f'imgs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}.png')
 plt.show()
 
+
+print(coxphdata)
+cph = CoxPHFitter()
+cph.fit(coxphdata, 'duration', 'events-1')
+cph.print_summary()
+# TODO: Do this but for comparison between mean survival probs in different situations.
 
 # Comparing multiple situations
 path = os.getcwd()
