@@ -18,13 +18,13 @@ csv_files = glob.glob(os.path.join(data_path, "outputs/*.csv"))
 grouped_files = {}
 for file in csv_files:
     file_name = os.path.basename(file)
-    name_without_suffix = file_name.rsplit('-', 1)[0]
-    suffix = file_name.rsplit('-', 1)[1]
+    name_without_suffix = file_name.rsplit("-", 1)[0]
+    suffix = file_name.rsplit("-", 1)[1]
     group_key = name_without_suffix
-    
+
     if group_key not in grouped_files:
         grouped_files[group_key] = []
-    
+
     grouped_files[group_key].append(file)
 
 # Print the grouped file paths
@@ -37,54 +37,59 @@ for group_key, files in grouped_files.items():
 
     for i, file_path in enumerate(files):
         data = pd.read_csv(file_path)
-        kmf.fit(data['T'], data['E'])
+        kmf.fit(data["T"], data["E"])
         kmf.plot_survival_function(label=f'Run {data["Run_number"][0]}')
-        surv_func_ci[f'surv_func-{str(i)}'] = kmf.survival_function_
-        surv_func_ci[f'ci_lower-{str(i)}'] = kmf.confidence_interval_['KM_estimate_lower_0.95']
-        surv_func_ci[f'ci_upper-{str(i)}'] = kmf.confidence_interval_['KM_estimate_upper_0.95']
+        surv_func_ci[f"surv_func-{str(i)}"] = kmf.survival_function_
+        surv_func_ci[f"ci_lower-{str(i)}"] = kmf.confidence_interval_[
+            "KM_estimate_lower_0.95"
+        ]
+        surv_func_ci[f"ci_upper-{str(i)}"] = kmf.confidence_interval_[
+            "KM_estimate_upper_0.95"
+        ]
 
-        time = max(data['T'])
+        time = max(data["T"])
 
-    surv_func_ci = surv_func_ci.fillna(method='ffill')
+    surv_func_ci = surv_func_ci.fillna(method="ffill")
 
-    columns = ['surv_func', 'ci_lower', 'ci_upper']
+    columns = ["surv_func", "ci_lower", "ci_upper"]
     means = {}
     for column in columns:
-        pair_columns = [column + '-' + str(i) for i in range(amt_of_runs)]
+        pair_columns = [column + "-" + str(i) for i in range(amt_of_runs)]
         means[column] = surv_func_ci[pair_columns].mean(axis=1)
-        
-    num = len(means['surv_func'])
+
+    num = len(means["surv_func"])
     # plt.plot(means['surv_func'], '--k', linewidth=2, label='Mean')
     # plt.fill_between(np.linspace(0, time, num), means['ci_lower'], means['ci_upper'], color='k', alpha=.1)
-    sns.lineplot(means['surv_func'], errorbar=('ci', 95), label='Mean', color='black')
+    sns.lineplot(means["surv_func"], errorbar=("ci", 95), label="Mean", color="black")
 
-    plt.suptitle('Kaplan-Meier survival graph', fontsize=18)
+    plt.suptitle("Kaplan-Meier survival graph", fontsize=18)
     plt.title(group_key, fontsize=10)
-    plt.xlabel('Time steps')
-    plt.ylabel('Survival probability')
+    plt.xlabel("Time steps")
+    plt.ylabel("Survival probability")
     plt.legend()
 
     fig.show()
-    plt.savefig(f'imgs/km-{group_key}.png')
+    plt.savefig(f"imgs/km-{group_key}.png")
+
 
 def concatAllRuns(data_path: Path):
     csv_files = glob.glob(os.path.join(data_path, "outputs/*.csv"))
     combined_df = pd.concat([pd.read_csv(f) for f in csv_files])
     return combined_df
 
+
 combined_df = concatAllRuns(data_path)
 le = LabelEncoder()
 print(combined_df.keys())
-combined_df['Agent_type'] = le.fit_transform(combined_df['Agent_type'])
-combined_df['Scenario'] = le.fit_transform(combined_df['Scenario'])
-combined_df['Trading'] = le.fit_transform(combined_df['Trading'])
-combined_df['Distribution'] = le.fit_transform(combined_df['Distribution'])
-combined_df = combined_df.drop(['Run_number'], axis=1)
+combined_df["Agent_type"] = le.fit_transform(combined_df["Agent_type"])
+combined_df["Scenario"] = le.fit_transform(combined_df["Scenario"])
+combined_df["Trading"] = le.fit_transform(combined_df["Trading"])
+combined_df["Distribution"] = le.fit_transform(combined_df["Distribution"])
+combined_df = combined_df.drop(["Run_number"], axis=1)
 
 cph = CoxPHFitter(penalizer=0.1)
-cph.fit(combined_df, 'T', 'E', show_progress=True)
+cph.fit(combined_df, "T", "E", show_progress=True)
 cph.print_summary()
-
 
 
 # data = pd.read_csv(f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}.csv')
@@ -100,7 +105,7 @@ cph.print_summary()
 # duration = np.arange(time)
 # coxphdata = pd.DataFrame({'duration': duration})
 
-# for run_nr in range(1, amt_runs + 1):   
+# for run_nr in range(1, amt_runs + 1):
 #     events = data[f'events-{run_nr}']
 #     alive_times = data[f'alive_times-{run_nr}'][:NUM_AGENTS]
 
@@ -135,8 +140,6 @@ cph.print_summary()
 # plt.show()
 
 
-
-
 # cph = CoxPHFitter(penalizer=0.1)
 # cph.fit(coxphdata, 'duration', 'events-2', show_progress=True)
 # cph.check_assumptions(coxphdata, show_plots=True)
@@ -146,7 +149,7 @@ cph.print_summary()
 # # Comparing multiple situations
 # path = os.getcwd()
 # csv_files = glob.glob(os.path.join(path, "eval/*.csv"))
-  
+
 # # loop over the list of csv files
 # msp_situation = []
 # names = []
