@@ -93,7 +93,7 @@ class Agent:
             
             # If it could not find any suitable neighbors, move randomly
             # -> Force it to move randomly 
-            if len(not_blacklisted_neighbors) == 0:
+            if len(not_blacklisted_neighbors) == 0 or len(self.nearest_neighbors == 0):
                 self.movement = 'random'
             else:
                 x_nn, y_nn = not_blacklisted_neighbors[0]

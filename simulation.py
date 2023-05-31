@@ -32,7 +32,7 @@ AGENT_TYPE = 'pathfind_market'
 TRADING = True
 
 # Resource distribution parameters
-DISTRIBUTION = 'RandomGrid' # Sides, RandomGrid, Uniform
+DISTRIBUTION = 'Uniform' # Sides, RandomGrid, Uniform
 regen_active = True
 MAX_WOOD = 2
 MAX_FOOD = 2
@@ -243,10 +243,10 @@ while running:
                         if traded:
                             agent.set_movement = 'random' 
 
-                # Update the resource gathering
-                chosen_resource = choose_resource(agent, resources, gather_amount) # make agent choose which resource to gather 
-                #if able_to_take_resource(agent, chosen_resource, resources):
-                take_resource(agent, chosen_resource, resources, gather_amount)
+            # Update the resource gathering
+            chosen_resource = choose_resource(agent, resources, gather_amount) # make agent choose which resource to gather 
+            #if able_to_take_resource(agent, chosen_resource, resources):
+            take_resource(agent, chosen_resource, resources, gather_amount)
             
             # Upkeep of agents and check if agent can survive
             agent.upkeep()
