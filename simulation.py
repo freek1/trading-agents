@@ -388,7 +388,7 @@ if SAVE_TO_FILE:
 
     data = pd.read_csv(file_path)
 
-    data = pd.DataFrame({'T': alive_times, 'E': events, 'Agent_type': AGENT_TYPE, 'Scenario': SCENARIO, 'Trading': TRADING, 'RUN_NUMBER': RUN_NR})
+    data = pd.DataFrame({'T': alive_times, 'E': events, 'Agent_type': AGENT_TYPE, 'Scenario': SCENARIO, 'Trading': TRADING, 'Distribution': DISTRIBUTION, 'Num_agents': NUM_AGENTS, 'Run_number': RUN_NR})
 
     # Assign the adjusted events and alive_times to DataFrame columns
     data.to_csv(file_path, index=False)
