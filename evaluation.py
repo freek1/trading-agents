@@ -22,8 +22,10 @@ def concatAllRuns(data_path: Path):
 data_path = Path(os.getcwd())
 combined_df = concatAllRuns(data_path)
 le = LabelEncoder()
+print(combined_df.keys())
 combined_df['Agent_type'] = le.fit_transform(combined_df['Agent_type'])
-combined_df = combined_df.drop(['RUN_NUMBER', 'Agent_type', 'Scenario'], axis=1)
+combined_df['Scenario'] = le.fit_transform(combined_df['Scenario'])
+combined_df = combined_df.drop(['RUN_NUMBER'], axis=1)
 
 cph = CoxPHFitter()
 cph.fit(combined_df, 'T', 'E', show_progress=True)
