@@ -381,7 +381,7 @@ if SAVE_TO_FILE:
 
 
     # Saving data to file
-    file_path = f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}.csv'
+    file_path = f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}-{RUN_NR}.csv'
 
     if not os.path.exists(file_path):
         empty = pd.DataFrame({'ignore': [0]*time})
