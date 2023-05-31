@@ -25,9 +25,9 @@ RUN_NR = 2
 MOVE_PROB = 0.8
 
 # Market, Baseline, 
-SCENARIO = 'Baseline'
+SCENARIO = 'Market'
 # 'random', 'pathfind_neighbor', 'pathfind_market'
-AGENT_TYPE = 'random'
+AGENT_TYPE = 'pathfind_market'
 # trading switch
 TRADING = True
 
@@ -379,9 +379,8 @@ if SAVE_TO_FILE:
     # only record deaths, kaplan meier and cox model both can deal with this 
     events = np.ones(len(alive_times))
 
-
     # Saving data to file
-    file_path = f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}.csv'
+    file_path = f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}-{RUN_NR}.csv'
 
     if not os.path.exists(file_path):
         empty = pd.DataFrame({'ignore': [0]*time})
