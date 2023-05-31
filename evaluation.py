@@ -4,12 +4,23 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import glob
+from pathlib import Path
 
 SCENARIO = 'Baseline'
-AGENT_TYPE = 'pathfind_neighbor'
+AGENT_TYPE = 'random'
 DISTRIBUTION = 'RandomGrid'
 NUM_AGENTS = 200
-TRADING = True
+TRADING = False
+
+
+def concatAllRuns(data_path: Path):
+    extension = 'csv'
+    all_filenames = [i for i in glob.glob(f'{data_path}/*.{extension}')]
+    combined_runs = pd.concat([pd.read_csv(f) for f in all_filenames])
+    return combined_runs
+
+data_path = Path(os.getcwd())
+
 
 data = pd.read_csv(f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}.csv')
 
@@ -59,9 +70,11 @@ plt.savefig(f'imgs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}
 plt.show()
 
 
-print(coxphdata)
-cph = CoxPHFitter()
-cph.fit(coxphdata, 'duration', 'events-1')
+
+
+cph = CoxPHFitter(penalizer=0.1)
+cph.fit(coxphdata, 'duration', 'events-2', show_progress=True)
+cph.check_assumptions(coxphdata, show_plots=True)
 cph.print_summary()
 # TODO: Do this but for comparison between mean survival probs in different situations.
 

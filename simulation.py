@@ -20,18 +20,18 @@ dt = 0
 fps = 144
 time = 1
 
-SAVE_TO_FILE = False
+SAVE_TO_FILE = True
 
-RUN_NR = 3
+RUN_NR = 1
 
 MOVE_PROB = 0.8
 
 # Market, Baseline, 
-SCENARIO = 'Market'
+SCENARIO = 'Baseline'
 # 'random', 'pathfind_neighbor', 'pathfind_market'
-AGENT_TYPE = 'pathfind_market'
+AGENT_TYPE = 'random'
 # trading switch
-TRADING = True
+TRADING = False
 
 # Resource distribution parameters
 DISTRIBUTION = 'RandomGrid' # Sides, RandomGrid, Uniform
@@ -371,22 +371,17 @@ while running:
 # Clean up
 pygame.quit()
 
-# Time alive of agents distribution
-alive_times = np.zeros(NUM_AGENTS)
-for agent in agents:
-    alive_times[agent.id] = agent.time_alive
-
-# List of time-steps
-duration = np.arange(time)
-# List of when agents died
-events = np.zeros(len(duration))
-for ev in alive_times:
-    # If agent died before the final timestep (otherwise it was still alive at the end)
-    if ev < time - 1:
-        ev = int(ev)
-        events[ev] = 1
 
 if SAVE_TO_FILE:
+    # Time alive of agents distribution
+    alive_times = np.zeros(NUM_AGENTS)
+    for agent in agents:
+        alive_times[agent.id] = agent.time_alive
+    
+    # only record deaths, kaplan meier and cox model both can deal with this 
+    events = np.ones(len(alive_times))
+
+
     # Saving data to file
     file_path = f'outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}.csv'
 
@@ -396,11 +391,8 @@ if SAVE_TO_FILE:
 
     data = pd.read_csv(file_path)
 
-    # Adjust the length of events and alive_times to match the DataFrame index
-    events = pad_sequences([events], maxlen=len(data), padding='post', truncating='post', value=-1)[0]
-    alive_times = pad_sequences([alive_times], maxlen=len(data), padding='post', truncating='post', value=-1)[0]
+    data = pd.DataFrame({'T': alive_times, 'E': events, 'Agent_type': AGENT_TYPE, 'Scenario': SCENARIO, 'Trading': TRADING})
 
     # Assign the adjusted events and alive_times to DataFrame columns
-    data[f'events-{RUN_NR}'] = events
-    data[f'alive_times-{RUN_NR}'] = alive_times
+
     data.to_csv(file_path, index=False)
