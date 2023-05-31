@@ -5,8 +5,6 @@ import seaborn as sns
 import copy
 import pandas as pd
 import os
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-
 
 # Functions file
 from funcs import *
@@ -22,7 +20,7 @@ time = 1
 
 SAVE_TO_FILE = True
 
-RUN_NR = 1
+RUN_NR = 2
 
 MOVE_PROB = 0.8
 
@@ -31,7 +29,7 @@ SCENARIO = 'Baseline'
 # 'random', 'pathfind_neighbor', 'pathfind_market'
 AGENT_TYPE = 'random'
 # trading switch
-TRADING = False
+TRADING = True
 
 # Resource distribution parameters
 DISTRIBUTION = 'RandomGrid' # Sides, RandomGrid, Uniform
