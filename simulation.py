@@ -20,14 +20,14 @@ time = 1
 
 SAVE_TO_FILE = True
 
-RUN_NR = 2
+RUN_NR = 1
 
 MOVE_PROB = 0.8
 
 # Market, Baseline, 
-SCENARIO = 'Market'
+SCENARIO = 'Baseline'
 # 'random', 'pathfind_neighbor', 'pathfind_market'
-AGENT_TYPE = 'pathfind_market'
+AGENT_TYPE = 'random'
 # trading switch
 TRADING = True
 

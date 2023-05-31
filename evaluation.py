@@ -7,19 +7,47 @@ import os
 import glob
 from pathlib import Path
 
-SCENARIO = 'Baseline'
-AGENT_TYPE = 'random'
-DISTRIBUTION = 'RandomGrid'
-NUM_AGENTS = 200
-TRADING = False
 
+kmf = KaplanMeierFitter()
+
+data_path = Path(os.getcwd())
+csv_files = glob.glob(os.path.join(data_path, "outputs/*.csv"))
+
+# Group runs by experiment
+grouped_files = {}
+for file in csv_files:
+    file_name = os.path.basename(file)
+    name_without_suffix = file_name.rsplit('-', 1)[0]
+    suffix = file_name.rsplit('-', 1)[1]
+    group_key = name_without_suffix
+    
+    if group_key not in grouped_files:
+        grouped_files[group_key] = []
+    
+    grouped_files[group_key].append(file)
+
+# Print the grouped file paths
+for group_key, files in grouped_files.items():
+    fig = plt.figure()
+
+    print(f"Group: {group_key}")
+    for file_path in files:
+        data = pd.read_csv(file_path)
+        kmf.fit(data['T'], data['E'])
+        kmf.plot_survival_function(label=f'Run {data["RUN_NUMBER"][0]}')
+    plt.suptitle('Kaplan-Meier survival graph', fontsize=18)
+    plt.title(group_key, fontsize=10)
+    plt.xlabel('Time steps')
+    plt.ylabel('Survival probability')
+
+    fig.show()
+    plt.savefig(f'imgs/km-{group_key}.png')
 
 def concatAllRuns(data_path: Path):
     csv_files = glob.glob(os.path.join(data_path, "outputs/*.csv"))
     combined_df = pd.concat([pd.read_csv(f) for f in csv_files])
     return combined_df
 
-data_path = Path(os.getcwd())
 combined_df = concatAllRuns(data_path)
 le = LabelEncoder()
 print(combined_df.keys())
