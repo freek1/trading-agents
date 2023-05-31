@@ -19,15 +19,21 @@ level of resource production specialization within the population?
 #### Measurement: 
 Kaplan-Meier survival distribution graph (KM-graph).
 
-![Example Kaplan-Meier survival graph](/imgs/Market-pathfind_market-RandomGrid-200.png)
+![Example Kaplan-Meier survival graph](imgs/km-Baseline-random-RandomGrid-200-True.png)
 
 #### Situations: 
 | Situations | Description |
 | ------ | ------ |
-|  Baseline  |  Local trade with pathfinding to nearest compatible agent (using KD-trees with radius).  |
-|  Market situation  |  Local trade at a physical market area.  |
-|  Movement situation  |  Random movement in stead of goal-directed.  |
-|  Resource distributions  |  Examine the effect of different resource locations.  |
+|  Random agents without trading  |  `Baseline, random agent, DISTRIBUTION, trading=false`  |
+|  Random agents with trading  |  `Baseline, random agent, DISTRIBUTION, trading=true`  |
+|  Agents pathfinding to nearest neighbor to trade  |  `Baseline, pathfind agent, DISTRIBUTION, trading=true`  |
+|  Agents pathfinding to a central market place to trade  |  `Market, market agent, DISTRIBUTION, trading=true`  |
+
+
+All situations are tested on three resource distributions: 
+- All of one resource is on one side, and all of the other on the opposite side.
+- All resources are randomly distributed in a grid structure.
+- All resources are randomly uniformly distributed on all squares.
 
 #### Analysis: 
-Log-rank test (if KM-graphs cross-over), or ideally Cox Proportional-Hazards model (also gives hazard ratio).
+Cox Proportional-Hazards model (also gives hazard ratio).
