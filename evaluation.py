@@ -6,6 +6,7 @@ import pandas as pd
 import os
 import glob
 from pathlib import Path
+import seaborn as sns
 
 
 kmf = KaplanMeierFitter()
@@ -30,15 +31,38 @@ for file in csv_files:
 for group_key, files in grouped_files.items():
     fig = plt.figure()
 
-    print(f"Group: {group_key}")
-    for file_path in files:
+    # For computing the mean
+    surv_func_ci = pd.DataFrame()
+    amt_of_runs = len(files)
+
+    for i, file_path in enumerate(files):
         data = pd.read_csv(file_path)
         kmf.fit(data['T'], data['E'])
         kmf.plot_survival_function(label=f'Run {data["RUN_NUMBER"][0]}')
+        surv_func_ci[f'surv_func-{str(i)}'] = kmf.survival_function_
+        surv_func_ci[f'ci_lower-{str(i)}'] = kmf.confidence_interval_['KM_estimate_lower_0.95']
+        surv_func_ci[f'ci_upper-{str(i)}'] = kmf.confidence_interval_['KM_estimate_upper_0.95']
+
+        time = max(data['T'])
+
+    surv_func_ci = surv_func_ci.fillna(method='ffill')
+
+    columns = ['surv_func', 'ci_lower', 'ci_upper']
+    means = {}
+    for column in columns:
+        pair_columns = [column + '-' + str(i) for i in range(amt_of_runs)]
+        means[column] = surv_func_ci[pair_columns].mean(axis=1)
+        
+    num = len(means['surv_func'])
+    # plt.plot(means['surv_func'], '--k', linewidth=2, label='Mean')
+    # plt.fill_between(np.linspace(0, time, num), means['ci_lower'], means['ci_upper'], color='k', alpha=.1)
+    sns.lineplot(means['surv_func'], errorbar=('ci', 95), label='Mean', color='black')
+
     plt.suptitle('Kaplan-Meier survival graph', fontsize=18)
     plt.title(group_key, fontsize=10)
     plt.xlabel('Time steps')
     plt.ylabel('Survival probability')
+    plt.legend()
 
     fig.show()
     plt.savefig(f'imgs/km-{group_key}.png')
