@@ -38,7 +38,7 @@ for group_key, files in grouped_files.items():
     for i, file_path in enumerate(files):
         data = pd.read_csv(file_path)
         kmf.fit(data['T'], data['E'])
-        kmf.plot_survival_function(label=f'Run {data["RUN_NUMBER"][0]}')
+        kmf.plot_survival_function(label=f'Run {data["Run_number"][0]}')
         surv_func_ci[f'surv_func-{str(i)}'] = kmf.survival_function_
         surv_func_ci[f'ci_lower-{str(i)}'] = kmf.confidence_interval_['KM_estimate_lower_0.95']
         surv_func_ci[f'ci_upper-{str(i)}'] = kmf.confidence_interval_['KM_estimate_upper_0.95']
@@ -79,9 +79,9 @@ combined_df['Agent_type'] = le.fit_transform(combined_df['Agent_type'])
 combined_df['Scenario'] = le.fit_transform(combined_df['Scenario'])
 combined_df['Trading'] = le.fit_transform(combined_df['Trading'])
 combined_df['Distribution'] = le.fit_transform(combined_df['Distribution'])
-combined_df = combined_df.drop(['Run_number', 'Num_agents'], axis=1)
+combined_df = combined_df.drop(['Run_number'], axis=1)
 
-cph = CoxPHFitter()
+cph = CoxPHFitter(penalizer=0.1)
 cph.fit(combined_df, 'T', 'E', show_progress=True)
 cph.print_summary()
 
