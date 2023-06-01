@@ -405,9 +405,9 @@ def runSimulation(
             # Update the display
             pygame.display.flip()
 
-        clock.tick(fps)
-        dt = clock.tick(fps) / 100
-        time += 1
+            clock.tick(fps)
+            dt = clock.tick(fps) / 100
+            time += 1
 
         if nr_agents == 0:
             print("No agents left, ending simulation")
