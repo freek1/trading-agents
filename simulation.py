@@ -5,6 +5,7 @@ import seaborn as sns
 import copy
 import pandas as pd
 import os
+from tqdm import tqdm
 
 # Functions file
 from funcs import *
@@ -463,40 +464,29 @@ agent_types_with_trading_with_market = "pathfind_market"
 agent_types_with_trading_without_market = ["random", "pathfind_neighbor"]
 
 
-RUN_NR = 1
-for DISTRIBUTION in distributions:
-    for NUM_AGENTS in num_agents_list:
-        for MOVE_PROB in move_probabilities:
-            for TRADING in trading:
-                if not TRADING:
-                    SCENARIO = scenarios_wihtout_trading
-                    AGENT_TYPE = agents_wihtout_trading
-                    runSimulation(
-                        NUM_AGENTS,
-                        SCENARIO,
-                        AGENT_TYPE,
-                        MOVE_PROB,
-                        DISTRIBUTION,
-                        TRADING,
-                        SAVE_TO_FILE,
-                        RUN_NR,
-                    )
-                else:
-                    for SCENARIO in scenarios:
-                        if SCENARIO == "Market":
-                            AGENT_TYPE = agent_types_with_trading_with_market
-                            runSimulation(
-                                NUM_AGENTS,
-                                SCENARIO,
-                                AGENT_TYPE,
-                                MOVE_PROB,
-                                DISTRIBUTION,
-                                TRADING,
-                                SAVE_TO_FILE,
-                                RUN_NR,
-                            )
-                        else:
-                            for AGENT_TYPE in agent_types_with_trading_without_market:
+runs = 5
+for RUN_NR in tqdm(range(runs)):
+    for DISTRIBUTION in distributions:
+        for NUM_AGENTS in num_agents_list:
+            for MOVE_PROB in move_probabilities:
+                for TRADING in trading:
+                    if not TRADING:
+                        SCENARIO = scenarios_wihtout_trading
+                        AGENT_TYPE = agents_wihtout_trading
+                        runSimulation(
+                            NUM_AGENTS,
+                            SCENARIO,
+                            AGENT_TYPE,
+                            MOVE_PROB,
+                            DISTRIBUTION,
+                            TRADING,
+                            SAVE_TO_FILE,
+                            RUN_NR,
+                        )
+                    else:
+                        for SCENARIO in scenarios:
+                            if SCENARIO == "Market":
+                                AGENT_TYPE = agent_types_with_trading_with_market
                                 runSimulation(
                                     NUM_AGENTS,
                                     SCENARIO,
@@ -507,3 +497,15 @@ for DISTRIBUTION in distributions:
                                     SAVE_TO_FILE,
                                     RUN_NR,
                                 )
+                            else:
+                                for AGENT_TYPE in agent_types_with_trading_without_market:
+                                    runSimulation(
+                                        NUM_AGENTS,
+                                        SCENARIO,
+                                        AGENT_TYPE,
+                                        MOVE_PROB,
+                                        DISTRIBUTION,
+                                        TRADING,
+                                        SAVE_TO_FILE,
+                                        RUN_NR,
+                                    )
