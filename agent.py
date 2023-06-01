@@ -59,7 +59,7 @@ class Agent:
 
     def updateBehaviour(self):
         # Update trade behaviour
-        ratio = self.calculateResourceRatio()
+        ratio = self.calculateResourceRatio("wood", "food")
         if (
             ratio > TRADE_THRESHOLD
             and all(i >= TRADE_QTY for i in list(self.current_stock.values()))
