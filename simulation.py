@@ -210,12 +210,8 @@ def runSimulation(
                                 if agent_B is None:
                                     continue
                                 if agent.compatible(agent_B):
-                                    # print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
-                                    # print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
-                                    # print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
                                     traded_qty = agent.trade(agent_B)
                                     traded = True
-                                    # print(f"  Qty traded: {traded_qty}")
                                     agent.clearBlacklistedAgents()
                                 else:
                                     # If not compatible, find next nearest neighbor
@@ -433,7 +429,7 @@ def runSimulation(
 
 SAVE_TO_FILE = True
 
-MOVE_PROB = 0.8
+MOVE_PROB = 1
 
 # Market, Baseline,
 SCENARIO = "Baseline"
@@ -463,49 +459,60 @@ agents_wihtout_trading = "random"
 agent_types_with_trading_with_market = "pathfind_market"
 agent_types_with_trading_without_market = ["random", "pathfind_neighbor"]
 
+runSimulation(
+    NUM_AGENTS,
+    SCENARIO,
+    AGENT_TYPE,
+    MOVE_PROB,
+    DISTRIBUTION,
+    TRADING,
+    SAVE_TO_FILE=False,
+    RUN_NR=50,
+)
 
-runs = 5
-for RUN_NR in tqdm(range(runs)):
-    for DISTRIBUTION in distributions:
-        for NUM_AGENTS in num_agents_list:
-            for MOVE_PROB in move_probabilities:
-                for TRADING in trading:
-                    if not TRADING:
-                        SCENARIO = scenarios_wihtout_trading
-                        AGENT_TYPE = agents_wihtout_trading
-                        runSimulation(
-                            NUM_AGENTS,
-                            SCENARIO,
-                            AGENT_TYPE,
-                            MOVE_PROB,
-                            DISTRIBUTION,
-                            TRADING,
-                            SAVE_TO_FILE,
-                            RUN_NR,
-                        )
-                    else:
-                        for SCENARIO in scenarios:
-                            if SCENARIO == "Market":
-                                AGENT_TYPE = agent_types_with_trading_with_market
-                                runSimulation(
-                                    NUM_AGENTS,
-                                    SCENARIO,
-                                    AGENT_TYPE,
-                                    MOVE_PROB,
-                                    DISTRIBUTION,
-                                    TRADING,
-                                    SAVE_TO_FILE,
-                                    RUN_NR,
-                                )
-                            else:
-                                for AGENT_TYPE in agent_types_with_trading_without_market:
-                                    runSimulation(
-                                        NUM_AGENTS,
-                                        SCENARIO,
-                                        AGENT_TYPE,
-                                        MOVE_PROB,
-                                        DISTRIBUTION,
-                                        TRADING,
-                                        SAVE_TO_FILE,
-                                        RUN_NR,
-                                    )
+
+# runs = 5
+# for RUN_NR in tqdm(range(runs)):
+#     for DISTRIBUTION in distributions:
+#         for NUM_AGENTS in num_agents_list:
+#             for MOVE_PROB in move_probabilities:
+#                 for TRADING in trading:
+#                     if not TRADING:
+#                         SCENARIO = scenarios_wihtout_trading
+#                         AGENT_TYPE = agents_wihtout_trading
+#                         runSimulation(
+#                             NUM_AGENTS,
+#                             SCENARIO,
+#                             AGENT_TYPE,
+#                             MOVE_PROB,
+#                             DISTRIBUTION,
+#                             TRADING,
+#                             SAVE_TO_FILE,
+#                             RUN_NR,
+#                         )
+#                     else:
+#                         for SCENARIO in scenarios:
+#                             if SCENARIO == "Market":
+#                                 AGENT_TYPE = agent_types_with_trading_with_market
+#                                 runSimulation(
+#                                     NUM_AGENTS,
+#                                     SCENARIO,
+#                                     AGENT_TYPE,
+#                                     MOVE_PROB,
+#                                     DISTRIBUTION,
+#                                     TRADING,
+#                                     SAVE_TO_FILE,
+#                                     RUN_NR,
+#                                 )
+#                             else:
+#                                 for AGENT_TYPE in agent_types_with_trading_without_market:
+#                                     runSimulation(
+#                                         NUM_AGENTS,
+#                                         SCENARIO,
+#                                         AGENT_TYPE,
+#                                         MOVE_PROB,
+#                                         DISTRIBUTION,
+#                                         TRADING,
+#                                         SAVE_TO_FILE,
+#                                         RUN_NR,
+#                                     )
