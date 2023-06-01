@@ -59,7 +59,7 @@ class Agent:
 
     def updateBehaviour(self):
         # Update trade behaviour
-        ratio = self.current_stock["wood"] / self.current_stock["food"]
+        ratio = self.calculateResourceRatio("wood", "food")
         if (
             ratio > TRADE_THRESHOLD
             and all(i >= TRADE_QTY for i in list(self.current_stock.values()))
@@ -145,10 +145,19 @@ class Agent:
                 if (
                     self.behaviour == "trade_wood"
                     and agent_B.getBehaviour() == "trade_food"
-                    or self.behaviour == "trade_food"
+                ) or (
+                    self.behaviour == "trade_food"
                     and agent_B.getBehaviour() == "trade_wood"
                 ):
                     return True
+        elif self.agent_type != "pathfind_market" and (
+            (self.behaviour == "trade_wood" and agent_B.getBehaviour() == "trade_food")
+            or (
+                self.behaviour == "trade_food"
+                and agent_B.getBehaviour() == "trade_wood"
+            )
+        ):
+            return True
         else:
             return False
 
@@ -269,9 +278,12 @@ class Agent:
 
     def preferredResource(self):
         if self.current_stock["food"] < self.current_stock["wood"]:
-            return "food"
+            return "food", self.calculateResourceRatio("food", "wood")
         else:
-            return "wood"
+            return "wood", self.calculateResourceRatio("wood", "food")
+
+    def calculateResourceRatio(self, resource_1: str, resource_2: str):
+        return self.current_stock[resource_1] / self.current_stock[resource_2]
 
     def getCapacity(self, chosen_resource):
         if chosen_resource == "wood":

@@ -5,6 +5,7 @@ import seaborn as sns
 import copy
 import pandas as pd
 import os
+from tqdm import tqdm
 
 # Functions file
 from funcs import *
@@ -204,12 +205,8 @@ def runSimulation(
                                 if agent_B is None:
                                     continue
                                 if agent.compatible(agent_B):
-                                    # print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
-                                    # print(f"  Agent A = {agent.current_stock}, {agent.behaviour}")
-                                    # print(f"  Agent B = {agent_B.current_stock}, {agent_B.behaviour}")
                                     traded_qty = agent.trade(agent_B)
                                     traded = True
-                                    # print(f"  Qty traded: {traded_qty}")
                                     agent.clearBlacklistedAgents()
                                 else:
                                     # If not compatible, find next nearest neighbor
@@ -463,7 +460,7 @@ def runSimulation(
 
 SAVE_TO_FILE = True
 
-MOVE_PROB = 0.8
+MOVE_PROB = 1
 
 # Market, Baseline,
 SCENARIO = "Baseline"
