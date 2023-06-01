@@ -41,10 +41,12 @@ def choose_resource(agent:Agent, resources, gather_amount):
         chosen_resource: string, name of chosen resource
     '''
     x, y = agent.getPos()
-    preferred = agent.preferredResource()
+    preferred, ratio = agent.preferredResource()
     if resources[preferred][x][y] >= gather_amount:
         return preferred
     elif resources[other_resource(preferred)][x][y] >= gather_amount:
+        return other_resource(preferred)
+    elif resources[preferred[x][y]] < resources[other_resource(preferred)[x][y]]*ratio:
         return other_resource(preferred)
     return preferred
 
