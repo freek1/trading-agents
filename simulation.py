@@ -41,8 +41,8 @@ def runSimulation(
     WHITE = (255, 255, 255)
     BROWN = (153, 102, 0)
     YELLOW = (255, 255, 0)
-    DARK_GREEN = (0, 102, 34)
-    BLUE = (0, 0, 160)
+    DARK_GREEN = (0, 200, 0)
+    BLUE = (30, 70, 250)
     ORANGE = (160, 80, 0)
 
     # TODO: check if we never want to chance these variables, otherwise we need to take them out of the function (I dont think we ever want no regen or chance the maximum resources over runs though)
@@ -113,8 +113,8 @@ def runSimulation(
                         food_cell_count += 1
                         food[x][y] = MAX_FOOD  # random.uniform(MIN_FOOD, MAX_FOOD)
 
-    total_food_regen = 2.1
-    total_wood_regen = 2.1
+    total_food_regen = 4.2 # originally 2.1
+    total_wood_regen = 4.2
     initial_food_qty = 420
     initial_wood_qty = 420
     initial_food_qty_cell = initial_food_qty / food_cell_count
@@ -148,7 +148,8 @@ def runSimulation(
     for i in range(NUM_AGENTS):
         x = random.randint(0, GRID_WIDTH - 2)
         y = random.randint(0, GRID_HEIGHT - 2)
-        color = (255.0, 0.0, 0.0) if y < GRID_HEIGHT / 2 else (0.0, 255.0, 0.0)
+        #color = (255.0, 0.0, 0.0) if y < GRID_HEIGHT / 2 else (0.0, 255.0, 0.0)
+        color = (255,110,0)
         agent = Agent(
             i, x, y, AGENT_TYPE, color, market
         )  # color = np.array(agent_colours[i])*255
@@ -318,7 +319,7 @@ def runSimulation(
                         else:
                             resources[resource][x][y] = max_resources[resource][x][
                                 y
-                            ]  # Set to max
+                            ]  # Set to max            
 
         # Clear the screen
         screen.fill(WHITE)
@@ -332,33 +333,6 @@ def runSimulation(
                 if market[row][col]:
                     blended_color = YELLOW
                 else:
-                    '''
-                    # Food: GREEN
-                    inv_food_color = tuple(map(lambda i, j: i - j, WHITE, DARK_GREEN))
-                    food_percentage = food_value / initial_food_qty_cell
-                    # if row == 0 and col == 0:
-                    #    print(f"{food_percentage=} = {food_value=} {initial_food_qty_cell=}")
-                    inv_food_color = tuple(
-                        map(lambda i: i * food_percentage, inv_food_color)
-                    )
-                    food_color = tuple(map(lambda i, j: i - j, WHITE, inv_food_color))
-                    # Wood: BLUE
-                    inv_wood_color = tuple(map(lambda i, j: i - j, WHITE, BLUE))
-                    wood_percentage = wood_value / initial_wood_qty_cell
-                    inv_wood_color = tuple(
-                        map(lambda i: i * wood_percentage, inv_wood_color)
-                    )
-                    wood_color = tuple(map(lambda i, j: i - j, WHITE, inv_wood_color))
-                    blended_color = tuple(
-                        map(lambda x, y: (x + y) / 2, food_color, wood_color)
-                    )
-                    food_percentage = food_value / initial_food_qty_cell
-                    wood_percentage = wood_value / initial_wood_qty_cell
-                    food_inv = tuple(map(lambda i: (255-i) * food_percentage, ORANGE))
-                    wood_inv = tuple(map(lambda i: (255-i) * wood_percentage, BLUE))
-                    blended_inv = tuple(map(lambda x, y: (x + y) / 2, food_inv, wood_inv))
-                    blended_color = tuple(map(lambda i, j: i - j, WHITE, blended_inv))
-                    '''
                     # Food: GREEN
                     inv_food_color = tuple(map(lambda i, j: i - j, WHITE, DARK_GREEN))
                     food_percentage = food_value / initial_food_qty_cell
@@ -391,16 +365,33 @@ def runSimulation(
                 rect = pygame.Rect(row * CELL_SIZE, col * CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 draw_rect_alpha(screen, blended_color, rect)
 
-        # Draw agents
+
+        # COUNT AGENTS for DEBUG
+        total_wood = 0.0
+        alive_count = 0
         for agent in agents:
             if agent.isAlive():
+                total_wood += agent.getCurrentStock('wood')
+                alive_count += 1
+        avg_wood = total_wood / alive_count
+        
+        # Draw agents
+        mini_rect_size = 14
+        for id, agent in enumerate(agents):
+            #if alive_count < 100:
+            if id == 0:
+                #agent.print_info()
+                print(f" {alive_count=} {avg_wood=} ")
+            if agent.isAlive():
                 x, y = agent.getPos()
-                rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                rect = pygame.Rect(x * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, y * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, mini_rect_size, mini_rect_size)
                 pygame.draw.rect(screen, agent.getColor(), rect)
 
-                # Draw wood and food bars
-                # agent.wood_bar(screen)
-                # agent.food_bar(screen)
+                # special_condition = False
+                # # TODO: implement for debugging
+                # if special_condition:
+                #     mini_rect = pygame.Rect(x * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, y * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, mini_rect_size, mini_rect_size)
+                #     pygame.draw.rect(screen, BLACK, mini_rect)
 
         # Draw the grid
         for x in range(0, SCREEN_WIDTH, CELL_SIZE):

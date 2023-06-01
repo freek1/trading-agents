@@ -6,7 +6,7 @@ import math
 resources = ["wood", "food"]
 TRADE_THRESHOLD = 1.5
 TRADE_QTY = 1
-UPKEEP_COST = 0.1  # was 0.02
+UPKEEP_COST = 0.035  # was 0.02
 
 DARK_BROWN = (60, 40, 0)
 DARK_GREEN = (0, 102, 34)
@@ -24,8 +24,8 @@ class Agent:
         self.wood_capacity = 30
         self.food_capacity = 30
         self.current_stock = {
-            "wood": random.randint(10, 20),
-            "food": random.randint(10, 20),
+            "wood": random.randint(4, 8),
+            "food": random.randint(4, 8),
         }
         self.upkeep_cost = {
             "wood": UPKEEP_COST,
@@ -44,6 +44,10 @@ class Agent:
         )  # List of (x,y) of the blacklisted agents
         self.in_market = False
         self.market = market
+
+    def print_info(self):
+        if self.alive:
+            print(f"{self.current_stock=} \n{self.behaviour=} \n{self.getPos()=}")
 
     def setInMarket(self, in_market):
         self.in_market = in_market
