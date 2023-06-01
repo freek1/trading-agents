@@ -39,15 +39,10 @@ def runSimulation(
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
     BROWN = (153, 102, 0)
-    DARK_BROWN = (60, 40, 0)
-    LIGHT_BROWN = (148, 113, 0)
-    GREEN = (0, 153, 51)
-    DARK_GREEN = (0, 102, 34)
-    LIGHT_GREEN = (102, 204, 102)
-    RED = (255, 25, 25)
-    BLUE = (25, 25, 255)
-    FOOD_COLOR = (200, 100, 0)
     YELLOW = (255, 255, 0)
+    DARK_GREEN = (0, 102, 34)
+    BLUE = (0, 0, 160)
+    ORANGE = (160, 80, 0)
 
     # TODO: check if we never want to chance these variables, otherwise we need to take them out of the function (I dont think we ever want no regen or chance the maximum resources over runs though)
     REGEN_ACTIVE = True
@@ -340,6 +335,8 @@ def runSimulation(
                 if market[row][col]:
                     blended_color = YELLOW
                 else:
+                    '''
+                    # Food: GREEN
                     inv_food_color = tuple(map(lambda i, j: i - j, WHITE, DARK_GREEN))
                     food_percentage = food_value / initial_food_qty_cell
                     # if row == 0 and col == 0:
@@ -348,7 +345,8 @@ def runSimulation(
                         map(lambda i: i * food_percentage, inv_food_color)
                     )
                     food_color = tuple(map(lambda i, j: i - j, WHITE, inv_food_color))
-                    inv_wood_color = tuple(map(lambda i, j: i - j, WHITE, BROWN))
+                    # Wood: BLUE
+                    inv_wood_color = tuple(map(lambda i, j: i - j, WHITE, BLUE))
                     wood_percentage = wood_value / initial_wood_qty_cell
                     inv_wood_color = tuple(
                         map(lambda i: i * wood_percentage, inv_wood_color)
@@ -357,10 +355,43 @@ def runSimulation(
                     blended_color = tuple(
                         map(lambda x, y: (x + y) / 2, food_color, wood_color)
                     )
+                    food_percentage = food_value / initial_food_qty_cell
+                    wood_percentage = wood_value / initial_wood_qty_cell
+                    food_inv = tuple(map(lambda i: (255-i) * food_percentage, ORANGE))
+                    wood_inv = tuple(map(lambda i: (255-i) * wood_percentage, BLUE))
+                    blended_inv = tuple(map(lambda x, y: (x + y) / 2, food_inv, wood_inv))
+                    blended_color = tuple(map(lambda i, j: i - j, WHITE, blended_inv))
+                    '''
+                    # Food: GREEN
+                    inv_food_color = tuple(map(lambda i, j: i - j, WHITE, DARK_GREEN))
+                    food_percentage = food_value / initial_food_qty_cell
+                    inv_food_color = tuple(
+                        map(lambda i: i * food_percentage, inv_food_color)
+                    )
+                    food_color = tuple(map(lambda i, j: i - j, WHITE, inv_food_color))
+                    Wood: BLUE
+                    inv_wood_color = tuple(map(lambda i, j: i - j, WHITE, BLUE))
+                    wood_percentage = wood_value / initial_wood_qty_cell
+                    inv_wood_color = tuple(
+                        map(lambda i: i * wood_percentage, inv_wood_color)
+                    )
+                    wood_color = tuple(map(lambda i, j: i - j, WHITE, inv_wood_color))
 
-                rect = pygame.Rect(
-                    row * CELL_SIZE, col * CELL_SIZE, CELL_SIZE, CELL_SIZE
-                )
+                    # Weighted blended color
+                    if food_percentage > 0.0 and food_percentage > 0.0:
+                        food_ratio = food_percentage / (food_percentage + wood_percentage)
+                        wood_ratio = wood_percentage / (food_percentage + wood_percentage)
+                    elif food_percentage == 0.0 and wood_percentage == 0.0:
+                        food_ratio = wood_ratio = 0.5
+                    elif food_percentage == 0.0:
+                        wood_ratio = 1.0
+                        food_ratio = 0.0
+                    else:
+                        wood_ratio = 0.0
+                        food_ratio = 1.0
+                    blended_color = tuple(map(lambda f, w: f*food_ratio + w*wood_ratio, food_color, wood_color))
+
+                rect = pygame.Rect(row * CELL_SIZE, col * CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 draw_rect_alpha(screen, blended_color, rect)
 
         # Draw agents
@@ -444,10 +475,8 @@ TRADING = True
 # Resource distribution parameters
 DISTRIBUTION = "Uniform"  # Sides, RandomGrid, Uniform
 
-
 # agent parameters
 NUM_AGENTS = 200
-
 
 distributions = ["Uniform", "Sides", "RandomGrid"]
 num_agents_list = [50, 100, 200, 300]
@@ -457,46 +486,47 @@ scenarios = ["Baseline", "Market"]
 agent_types = ["random", "pathfind_neighbor", "pathfind_market"]
 
 
-scenarios_wihtout_trading = "Baseline"
-agents_wihtout_trading = "random"
+scenarios_without_trading = "Baseline"
+agents_without_trading = "random"
 agent_types_with_trading_with_market = "pathfind_market"
 agent_types_with_trading_without_market = ["random", "pathfind_neighbor"]
 
+test_run = True
 
-RUN_NR = 1
-for DISTRIBUTION in distributions:
-    for NUM_AGENTS in num_agents_list:
-        for MOVE_PROB in move_probabilities:
-            for TRADING in trading:
-                if not TRADING:
-                    SCENARIO = scenarios_wihtout_trading
-                    AGENT_TYPE = agents_wihtout_trading
-                    runSimulation(
-                        NUM_AGENTS,
-                        SCENARIO,
-                        AGENT_TYPE,
-                        MOVE_PROB,
-                        DISTRIBUTION,
-                        TRADING,
-                        SAVE_TO_FILE,
-                        RUN_NR,
-                    )
-                else:
-                    for SCENARIO in scenarios:
-                        if SCENARIO == "Market":
-                            AGENT_TYPE = agent_types_with_trading_with_market
-                            runSimulation(
-                                NUM_AGENTS,
-                                SCENARIO,
-                                AGENT_TYPE,
-                                MOVE_PROB,
-                                DISTRIBUTION,
-                                TRADING,
-                                SAVE_TO_FILE,
-                                RUN_NR,
-                            )
-                        else:
-                            for AGENT_TYPE in agent_types_with_trading_without_market:
+if test_run:
+    runSimulation(
+                    NUM_AGENTS,
+                    "Market",
+                    AGENT_TYPE,
+                    0.8,
+                    "Uniform",
+                    True,
+                    False,
+                    0,
+                )
+else:
+    RUN_NR = 1
+    for DISTRIBUTION in distributions:
+        for NUM_AGENTS in num_agents_list:
+            for MOVE_PROB in move_probabilities:
+                for TRADING in trading:
+                    if not TRADING:
+                        SCENARIO = scenarios_without_trading
+                        AGENT_TYPE = agents_without_trading
+                        runSimulation(
+                            NUM_AGENTS,
+                            SCENARIO,
+                            AGENT_TYPE,
+                            MOVE_PROB,
+                            DISTRIBUTION,
+                            TRADING,
+                            SAVE_TO_FILE,
+                            RUN_NR,
+                        )
+                    else:
+                        for SCENARIO in scenarios:
+                            if SCENARIO == "Market":
+                                AGENT_TYPE = agent_types_with_trading_with_market
                                 runSimulation(
                                     NUM_AGENTS,
                                     SCENARIO,
@@ -507,3 +537,15 @@ for DISTRIBUTION in distributions:
                                     SAVE_TO_FILE,
                                     RUN_NR,
                                 )
+                            else:
+                                for AGENT_TYPE in agent_types_with_trading_without_market:
+                                    runSimulation(
+                                        NUM_AGENTS,
+                                        SCENARIO,
+                                        AGENT_TYPE,
+                                        MOVE_PROB,
+                                        DISTRIBUTION,
+                                        TRADING,
+                                        SAVE_TO_FILE,
+                                        RUN_NR,
+                                    )
