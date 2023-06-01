@@ -32,7 +32,6 @@ mean_survival_plots = pd.DataFrame()
 # Print the grouped file paths
 for group_key, files in grouped_files.items():
     # fig = plt.figure()
-
     # For computing the mean
     surv_func_ci = pd.DataFrame()
     amt_of_runs = len(files)
@@ -75,11 +74,48 @@ for group_key, files in grouped_files.items():
 
     # plt.savefig(f"imgs/km-{group_key}.png")
 
-# Plot all survival plots
+# Effect of movement probab. 
 fig = plt.figure()
-# plt.plot(mean_survival_plots)
-# sns.lineplot(mean_survival_plots)
+plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
+plt.title('Effect of movement probability', fontsize=10)
+plt.xlabel("Time steps")
+plt.ylabel("Survival probability")
+sns.lineplot(data=[
+                    mean_survival_plots['Market-pathfind_market-Sides-200-True-0.5'],
+                    mean_survival_plots['Market-pathfind_market-Sides-200-True-0.8'],
+                    mean_survival_plots['Market-pathfind_market-Sides-200-True-1']
+                ],
+             errorbar=("ci", 95))
+plt.show()
 
+
+# Effect of distribution
+fig = plt.figure()
+plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
+plt.title('Effect of resource distribution', fontsize=10)
+plt.xlabel("Time steps")
+plt.ylabel("Survival probability")
+sns.lineplot(data=[
+                    mean_survival_plots['Baseline-random-Sides-200-True-1'],
+                    mean_survival_plots['Baseline-random-Uniform-200-True-1'],
+                    mean_survival_plots['Baseline-random-RandomGrid-200-True-1']
+                ],
+             errorbar=("ci", 95))
+plt.show()
+
+
+# Effect of market
+fig = plt.figure()
+plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
+plt.title('Effect of market', fontsize=10)
+plt.xlabel("Time steps")
+plt.ylabel("Survival probability")
+sns.lineplot(data=[
+                    mean_survival_plots['Baseline-random-Sides-200-True-1'],
+                    mean_survival_plots['Baseline-pathfind_neighbor-Sides-200-True-1'],
+                    mean_survival_plots['Market-pathfind_market-Sides-200-True-1']
+                ],
+             errorbar=("ci", 95))
 plt.show()
 
 
