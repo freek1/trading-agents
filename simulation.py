@@ -6,6 +6,8 @@ import copy
 import pandas as pd
 import os
 from tqdm import tqdm
+import multiprocessing
+from multiprocessing import Process
 
 # Functions file
 from funcs import *
@@ -13,6 +15,7 @@ from funcs import *
 # Agent class
 from agent import Agent
 
+ENABLE_RENDERING = False
 
 def runSimulation(
     NUM_AGENTS: int,
@@ -23,18 +26,20 @@ def runSimulation(
     TRADING: bool,
     SAVE_TO_FILE: bool,
     RUN_NR: int,
-):
-    # Initialize Pygame
-    pygame.init()
-    clock = pygame.time.Clock()
-    fps = 144
-    time = 1
-
+):  
     # Set the dimensions of the screen
     GRID_WIDTH, GRID_HEIGHT, CELL_SIZE = get_grid_params()
     SCREEN_WIDTH = GRID_WIDTH * CELL_SIZE
     SCREEN_HEIGHT = GRID_HEIGHT * CELL_SIZE
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+    if ENABLE_RENDERING:
+        # Initialize Pygame
+        pygame.init()
+        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+    fps = 144
+    clock = pygame.time.Clock()
+    time = 1
 
     # Define some colors
     BLACK = (0, 0, 0)
@@ -43,7 +48,7 @@ def runSimulation(
     YELLOW = (255, 255, 0)
     DARK_GREEN = (0, 200, 0)
     BLUE = (30, 70, 250)
-    ORANGE = (160, 80, 0)
+    ORANGE = (240, 70, 0)
 
     # TODO: check if we never want to chance these variables, otherwise we need to take them out of the function (I dont think we ever want no regen or chance the maximum resources over runs though)
     REGEN_ACTIVE = True
@@ -165,23 +170,27 @@ def runSimulation(
 
     while running:
         # Handle events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        if ENABLE_RENDERING:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
 
         # Counting the nr of alive agents for automatic stopping
         nr_agents = 0
+
+        # COUNT AVG_RESOURCES of agents for DEBUGGING
+        total_wood = 0.0
 
         # Update the agents
         for agent in agents:
             if agent.isAlive():
                 agent.updateBehaviour()
-
+                total_wood += agent.getCurrentStock('wood')
                 nr_agents += 1
                 agent.update_time_alive()
                 x, y = agent.getPos()
-                rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                pygame.draw.rect(screen, agent.getColor(), rect)
+                #rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                #pygame.draw.rect(screen, ORANGE, rect)
 
                 # Do agent behaviour
                 if TRADING:
@@ -303,6 +312,9 @@ def runSimulation(
 
             # Updating KD-tree
             positions_tree = KDTree(agent_positions)
+            
+        avg_wood = total_wood / nr_agents
+        # print(f" {nr_agents=} {avg_wood=} ")
 
         if REGEN_ACTIVE:
             for resource in resources:
@@ -321,86 +333,77 @@ def runSimulation(
                                 y
                             ]  # Set to max            
 
-        # Clear the screen
-        screen.fill(WHITE)
+        if ENABLE_RENDERING:
+            # Clear the screen
+            screen.fill(WHITE)
 
-        # Draw resources
-        for row in range(GRID_HEIGHT):
-            for col in range(GRID_WIDTH):
-                wood_value = wood[row][col]
-                food_value = food[row][col]
-                # Map the resource value to a shade of brown or green
-                if market[row][col]:
-                    blended_color = YELLOW
-                else:
-                    # Food: GREEN
-                    inv_food_color = tuple(map(lambda i, j: i - j, WHITE, DARK_GREEN))
-                    food_percentage = food_value / initial_food_qty_cell
-                    inv_food_color = tuple(
-                        map(lambda i: i * food_percentage, inv_food_color)
-                    )
-                    food_color = tuple(map(lambda i, j: i - j, WHITE, inv_food_color))
-                    Wood: BLUE
-                    inv_wood_color = tuple(map(lambda i, j: i - j, WHITE, BLUE))
-                    wood_percentage = wood_value / initial_wood_qty_cell
-                    inv_wood_color = tuple(
-                        map(lambda i: i * wood_percentage, inv_wood_color)
-                    )
-                    wood_color = tuple(map(lambda i, j: i - j, WHITE, inv_wood_color))
-
-                    # Weighted blended color
-                    if food_percentage > 0.0 and food_percentage > 0.0:
-                        food_ratio = food_percentage / (food_percentage + wood_percentage)
-                        wood_ratio = wood_percentage / (food_percentage + wood_percentage)
-                    elif food_percentage == 0.0 and wood_percentage == 0.0:
-                        food_ratio = wood_ratio = 0.5
-                    elif food_percentage == 0.0:
-                        wood_ratio = 1.0
-                        food_ratio = 0.0
+            # Draw resources
+            for row in range(GRID_HEIGHT):
+                for col in range(GRID_WIDTH):
+                    wood_value = wood[row][col]
+                    food_value = food[row][col]
+                    # Map the resource value to a shade of brown or green
+                    if market[row][col]:
+                        blended_color = YELLOW
                     else:
-                        wood_ratio = 0.0
-                        food_ratio = 1.0
-                    blended_color = tuple(map(lambda f, w: f*food_ratio + w*wood_ratio, food_color, wood_color))
+                        # Food: GREEN
+                        inv_food_color = tuple(map(lambda i, j: i - j, WHITE, DARK_GREEN))
+                        food_percentage = food_value / initial_food_qty_cell
+                        inv_food_color = tuple(
+                            map(lambda i: i * food_percentage, inv_food_color)
+                        )
+                        food_color = tuple(map(lambda i, j: i - j, WHITE, inv_food_color))
+                        Wood: BLUE
+                        inv_wood_color = tuple(map(lambda i, j: i - j, WHITE, BLUE))
+                        wood_percentage = wood_value / initial_wood_qty_cell
+                        inv_wood_color = tuple(
+                            map(lambda i: i * wood_percentage, inv_wood_color)
+                        )
+                        wood_color = tuple(map(lambda i, j: i - j, WHITE, inv_wood_color))
 
-                rect = pygame.Rect(row * CELL_SIZE, col * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                draw_rect_alpha(screen, blended_color, rect)
+                        # Weighted blended color
+                        if food_percentage > 0.0 and food_percentage > 0.0:
+                            food_ratio = food_percentage / (food_percentage + wood_percentage)
+                            wood_ratio = wood_percentage / (food_percentage + wood_percentage)
+                        elif food_percentage == 0.0 and wood_percentage == 0.0:
+                            food_ratio = wood_ratio = 0.5
+                        elif food_percentage == 0.0:
+                            wood_ratio = 1.0
+                            food_ratio = 0.0
+                        else:
+                            wood_ratio = 0.0
+                            food_ratio = 1.0
+                        blended_color = tuple(map(lambda f, w: f*food_ratio + w*wood_ratio, food_color, wood_color))
 
+                    rect = pygame.Rect(row * CELL_SIZE, col * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                    draw_rect_alpha(screen, blended_color, rect)
 
-        # COUNT AGENTS for DEBUG
-        total_wood = 0.0
-        alive_count = 0
-        for agent in agents:
-            if agent.isAlive():
-                total_wood += agent.getCurrentStock('wood')
-                alive_count += 1
-        avg_wood = total_wood / alive_count
-        
-        # Draw agents
-        mini_rect_size = 14
-        for id, agent in enumerate(agents):
-            #if alive_count < 100:
-            if id == 0:
-                #agent.print_info()
-                print(f" {alive_count=} {avg_wood=} ")
-            if agent.isAlive():
-                x, y = agent.getPos()
-                rect = pygame.Rect(x * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, y * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, mini_rect_size, mini_rect_size)
-                pygame.draw.rect(screen, agent.getColor(), rect)
+            # Draw agents
+            mini_rect_size = 14
+            for id, agent in enumerate(agents):
+                #if alive_count < 100:
+                #if id == 0:
+                #    agent.print_info()
+                if agent.isAlive():
+                    x, y = agent.getPos()
+                    if ENABLE_RENDERING:
+                        rect = pygame.Rect(x * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, y * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, mini_rect_size, mini_rect_size)
+                        pygame.draw.rect(screen, agent.getColor(), rect) # agent.getColor()  of  ORANGE
 
-                # special_condition = False
-                # # TODO: implement for debugging
-                # if special_condition:
-                #     mini_rect = pygame.Rect(x * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, y * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, mini_rect_size, mini_rect_size)
-                #     pygame.draw.rect(screen, BLACK, mini_rect)
+                    # special_condition = False
+                    # # TODO: implement for debugging
+                    # if special_condition:
+                    #     mini_rect = pygame.Rect(x * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, y * CELL_SIZE + (CELL_SIZE-mini_rect_size)/2, mini_rect_size, mini_rect_size)
+                    #     pygame.draw.rect(screen, BLACK, mini_rect)
 
-        # Draw the grid
-        for x in range(0, SCREEN_WIDTH, CELL_SIZE):
-            pygame.draw.line(screen, BLACK, (x, 0), (x, SCREEN_HEIGHT))
-        for y in range(0, SCREEN_HEIGHT, CELL_SIZE):
-            pygame.draw.line(screen, BLACK, (0, y), (SCREEN_WIDTH, y))
+            # Draw the grid
+            for x in range(0, SCREEN_WIDTH, CELL_SIZE):
+                pygame.draw.line(screen, BLACK, (x, 0), (x, SCREEN_HEIGHT))
+            for y in range(0, SCREEN_HEIGHT, CELL_SIZE):
+                pygame.draw.line(screen, BLACK, (0, y), (SCREEN_WIDTH, y))
 
-        # Update the display
-        pygame.display.flip()
+            # Update the display
+            pygame.display.flip()
 
         clock.tick(fps)
         dt = clock.tick(fps) / 100
@@ -408,6 +411,10 @@ def runSimulation(
 
         if nr_agents == 0:
             print("No agents left, ending simulation")
+            running = False
+
+        if time > 100:
+            print('Time up, ending sim')
             running = False
 
     # Clean up
@@ -449,91 +456,90 @@ def runSimulation(
         data.to_csv(file_path, index=False)
 
 
-SAVE_TO_FILE = True
+if __name__ == "__main__":
+    print("Number of cpu : ", multiprocessing.cpu_count())
 
-MOVE_PROB = 1
+    SAVE_TO_FILE = True
 
-# Market, Baseline,
-SCENARIO = "Baseline"
-# 'random', 'pathfind_neighbor', 'pathfind_market'
-AGENT_TYPE = "random"
-# trading switch
-TRADING = True
-
-# Resource distribution parameters
-DISTRIBUTION = "Uniform"  # Sides, RandomGrid, Uniform
-
-# agent parameters
-NUM_AGENTS = 200
-
-distributions = ["Uniform", "Sides", "RandomGrid"]
-num_agents_list = [50, 100, 200, 300]
-move_probabilities = [0.5, 0.8, 1]
-trading = [True, False]
-scenarios = ["Baseline", "Market"]
-agent_types = ["random", "pathfind_neighbor", "pathfind_market"]
+    distributions = ["Uniform", "Sides", "RandomGrid"]
+    num_agents_list = [50, 100, 200, 300]
+    move_probabilities = [0.5, 0.8, 1]
+    trading = [True, False]
+    scenarios = ["Baseline", "Market"]
+    agent_types = ["random", "pathfind_neighbor", "pathfind_market"]
 
 
-scenarios_without_trading = "Baseline"
-agents_without_trading = "random"
-agent_types_with_trading_with_market = "pathfind_market"
-agent_types_with_trading_without_market = ["random", "pathfind_neighbor"]
+    scenarios_without_trading = "Baseline"
+    agents_without_trading = "random"
+    agent_types_with_trading_with_market = "pathfind_market"
+    agent_types_with_trading_without_market = ["random", "pathfind_neighbor"]
 
-test_run = True
+    test_run = True
 
-if test_run:
-    runSimulation(
-                    NUM_AGENTS,
-                    "Market",
-                    AGENT_TYPE,
-                    0.8,
-                    "Uniform",
-                    True,
-                    False,
-                    0,
-                )
-else:
-    RUN_NR = 1
-    for DISTRIBUTION in distributions:
-        for NUM_AGENTS in num_agents_list:
-            for MOVE_PROB in move_probabilities:
-                for TRADING in trading:
-                    if not TRADING:
-                        SCENARIO = scenarios_without_trading
-                        AGENT_TYPE = agents_without_trading
-                        runSimulation(
-                            NUM_AGENTS,
-                            SCENARIO,
-                            AGENT_TYPE,
-                            MOVE_PROB,
-                            DISTRIBUTION,
-                            TRADING,
-                            SAVE_TO_FILE,
-                            RUN_NR,
-                        )
-                    else:
-                        for SCENARIO in scenarios:
-                            if SCENARIO == "Market":
-                                AGENT_TYPE = agent_types_with_trading_with_market
-                                runSimulation(
-                                    NUM_AGENTS,
-                                    SCENARIO,
-                                    AGENT_TYPE,
-                                    MOVE_PROB,
-                                    DISTRIBUTION,
-                                    TRADING,
-                                    SAVE_TO_FILE,
-                                    RUN_NR,
-                                )
-                            else:
-                                for AGENT_TYPE in agent_types_with_trading_without_market:
-                                    runSimulation(
-                                        NUM_AGENTS,
-                                        SCENARIO,
-                                        AGENT_TYPE,
-                                        MOVE_PROB,
-                                        DISTRIBUTION,
-                                        TRADING,
-                                        SAVE_TO_FILE,
-                                        RUN_NR,
-                                    )
+    processes = []
+
+    if test_run:
+        for i in range(3):
+            # Create the processes
+            p = Process(target=runSimulation, args=(200,"Market",'random',0.8,"Uniform",True,False,0,))
+            processes.append(p)
+            print(p)
+            p.start()
+
+        # Complete the processes
+        for p in processes:
+            p.join()
+
+    else:
+        RUN_NR = 1
+        for DISTRIBUTION in distributions:
+            for NUM_AGENTS in num_agents_list:
+                for MOVE_PROB in move_probabilities:
+                    for TRADING in trading:
+                        if not TRADING:
+                            SCENARIO = scenarios_without_trading
+                            AGENT_TYPE = agents_without_trading
+                            p = Process(target=runSimulation,
+                                            args=(      NUM_AGENTS,
+                                                        SCENARIO,
+                                                        AGENT_TYPE,
+                                                        MOVE_PROB,
+                                                        DISTRIBUTION,
+                                                        TRADING,
+                                                        SAVE_TO_FILE,
+                                                        RUN_NR,))
+                            processes.append(p)
+                            p.start()
+                        else:
+                            for SCENARIO in scenarios:
+                                if SCENARIO == "Market":
+                                    AGENT_TYPE = agent_types_with_trading_with_market
+                                    p = Process(target=runSimulation,
+                                            args=(      NUM_AGENTS,
+                                                        SCENARIO,
+                                                        AGENT_TYPE,
+                                                        MOVE_PROB,
+                                                        DISTRIBUTION,
+                                                        TRADING,
+                                                        SAVE_TO_FILE,
+                                                        RUN_NR,))
+                                    processes.append(p)
+                                    p.start()
+                                else:
+                                    for AGENT_TYPE in agent_types_with_trading_without_market:
+                                        p = Process(target=runSimulation,
+                                            args=(      NUM_AGENTS,
+                                                        SCENARIO,
+                                                        AGENT_TYPE,
+                                                        MOVE_PROB,
+                                                        DISTRIBUTION,
+                                                        TRADING,
+                                                        SAVE_TO_FILE,
+                                                        RUN_NR,))
+                                        processes.append(p)
+                                        p.start()
+        
+        # Complete the processes
+        for p in processes:
+            p.join()
+
