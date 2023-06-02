@@ -411,7 +411,7 @@ def runSimulation(arg):
             print("No agents left, ending simulation")
             running = False
 
-        if time > 100:
+        if time > 1000:
             print('Time up, ending sim')
             running = False
 
@@ -484,37 +484,31 @@ if __name__ == "__main__":
             # Create the processes
             tasks.append((200,"Market",'random',0.8,"Uniform",True,False,i,))
  
-        results = pool.map_async(runSimulation, tasks)
+        pool.map_async(runSimulation, tasks)
         pool.close()
         pool.join()
-
-        for res in results.get():
-            print(res)
 
     else:
         tasks = []
-        RUN_NR = 1
-        for DISTRIBUTION in distributions:
-            for NUM_AGENTS in num_agents_list:
-                for MOVE_PROB in move_probabilities:
-                    for TRADING in trading:
-                        if not TRADING:
-                            SCENARIO = scenarios_without_trading
-                            AGENT_TYPE = agents_without_trading
-                            tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR,))
-                        else:
-                            for SCENARIO in scenarios:
-                                if SCENARIO == "Market":
-                                    AGENT_TYPE = agent_types_with_trading_with_market
-                                    tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR,))
-                                else:
-                                    for AGENT_TYPE in agent_types_with_trading_without_market:
+        for RUN_NR in [0,2,3,4]:
+            for DISTRIBUTION in distributions:
+                for NUM_AGENTS in num_agents_list:
+                    for MOVE_PROB in move_probabilities:
+                        for TRADING in trading:
+                            if not TRADING:
+                                SCENARIO = scenarios_without_trading
+                                AGENT_TYPE = agents_without_trading
+                                tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR,))
+                            else:
+                                for SCENARIO in scenarios:
+                                    if SCENARIO == "Market":
+                                        AGENT_TYPE = agent_types_with_trading_with_market
                                         tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR,))
+                                    else:
+                                        for AGENT_TYPE in agent_types_with_trading_without_market:
+                                            tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR,))
         # Run parallel
-        results = pool.map_async(runSimulation, tasks)
+        pool.map_async(runSimulation, tasks)
         # Close 
         pool.close()
         pool.join()
-
-        for res in results.get():
-            print(res)

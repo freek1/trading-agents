@@ -35,11 +35,12 @@ for group_key, files in grouped_files.items():
     # For computing the mean
     surv_func_ci = pd.DataFrame()
     amt_of_runs = len(files)
-
+    
+    plt.figure()
     for i, file_path in enumerate(files):
         data = pd.read_csv(file_path)
         kmf.fit(data["T"], data["E"])
-        # kmf.plot_survival_function(label=f'Run {data["Run_number"][0]}')
+        kmf.plot_survival_function(label=f'Run {data["Run_number"][0]}')
         surv_func_ci[f"surv_func-{str(i)}"] = kmf.survival_function_
         surv_func_ci[f"ci_lower-{str(i)}"] = kmf.confidence_interval_[
             "KM_estimate_lower_0.95"
@@ -64,15 +65,16 @@ for group_key, files in grouped_files.items():
     num = len(means["surv_func"])
     
     # PLOT
-    # sns.lineplot(means["surv_func"], errorbar=("ci", 95), label="Mean", color="black")
+    sns.lineplot(means["surv_func"], errorbar=("ci", 95), label="Mean", color="black")
 
-    # plt.suptitle("Kaplan-Meier survival graph", fontsize=18)
-    # plt.title(group_key, fontsize=10)
-    # plt.xlabel("Time steps")
-    # plt.ylabel("Survival probability")
-    # plt.legend()
+    plt.suptitle("Kaplan-Meier survival graph", fontsize=18)
+    plt.title(group_key, fontsize=10)
+    plt.xlabel("Time steps")
+    plt.ylabel("Survival probability")
+    plt.legend()
 
-    # plt.savefig(f"imgs/km-{group_key}.png")
+    plt.savefig(f"imgs/km-{group_key}.png")
+    plt.close()
 
 # Effect of movement probab. 
 fig = plt.figure()
@@ -118,6 +120,18 @@ sns.lineplot(data=[
              errorbar=("ci", 95))
 plt.show()
 
+# Effect of market
+fig = plt.figure()
+plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
+plt.title('Effect of trading', fontsize=10)
+plt.xlabel("Time steps")
+plt.ylabel("Survival probability")
+sns.lineplot(data=[
+                    mean_survival_plots['Baseline-random-RandomGrid-200-True-1'],
+                    mean_survival_plots['Baseline-random-RandomGrid-200-False-1'],
+                ],
+             errorbar=("ci", 95))
+plt.show()
 
 
 # Analysis
@@ -135,7 +149,6 @@ combined_df["Scenario"] = le.fit_transform(combined_df["Scenario"])
 combined_df["Trading"] = le.fit_transform(combined_df["Trading"])
 combined_df["Distribution"] = le.fit_transform(combined_df["Distribution"])
 combined_df = combined_df.drop(["Run_number"], axis=1)
-combined_df = combined_df.drop(["Trading"], axis=1)
 
 cph = CoxPHFitter(penalizer=0.1)
 cph.fit(combined_df, "T", "E", show_progress=False)
