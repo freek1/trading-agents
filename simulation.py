@@ -1,3 +1,6 @@
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 import pygame
 import random
 import numpy as np
@@ -17,16 +20,11 @@ from agent import Agent
 
 ENABLE_RENDERING = False
 
-def runSimulation(
-    NUM_AGENTS: int,
-    SCENARIO: str,
-    AGENT_TYPE: str,
-    MOVE_PROB: float,
-    DISTRIBUTION: str,
-    TRADING: bool,
-    SAVE_TO_FILE: bool,
-    RUN_NR: int,
-):  
+def runSimulation(arg):
+    # Unpacking input arguments
+    print(arg)
+    NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR = arg
+
     # Set the dimensions of the screen
     GRID_WIDTH, GRID_HEIGHT, CELL_SIZE = get_grid_params()
     SCREEN_WIDTH = GRID_WIDTH * CELL_SIZE
@@ -474,23 +472,27 @@ if __name__ == "__main__":
     agent_types_with_trading_with_market = "pathfind_market"
     agent_types_with_trading_without_market = ["random", "pathfind_neighbor"]
 
-    test_run = True
+    test_run = False
 
     processes = []
 
+    pool = multiprocessing.Pool()
+
     if test_run:
+        tasks = []
         for i in range(3):
             # Create the processes
-            p = Process(target=runSimulation, args=(200,"Market",'random',0.8,"Uniform",True,False,0,))
-            processes.append(p)
-            print(p)
-            p.start()
+            tasks.append((200,"Market",'random',0.8,"Uniform",True,False,i,))
+ 
+        results = pool.map_async(runSimulation, tasks)
+        pool.close()
+        pool.join()
 
-        # Complete the processes
-        for p in processes:
-            p.join()
+        for res in results.get():
+            print(res)
 
     else:
+        tasks = []
         RUN_NR = 1
         for DISTRIBUTION in distributions:
             for NUM_AGENTS in num_agents_list:
@@ -499,47 +501,20 @@ if __name__ == "__main__":
                         if not TRADING:
                             SCENARIO = scenarios_without_trading
                             AGENT_TYPE = agents_without_trading
-                            p = Process(target=runSimulation,
-                                            args=(      NUM_AGENTS,
-                                                        SCENARIO,
-                                                        AGENT_TYPE,
-                                                        MOVE_PROB,
-                                                        DISTRIBUTION,
-                                                        TRADING,
-                                                        SAVE_TO_FILE,
-                                                        RUN_NR,))
-                            processes.append(p)
-                            p.start()
+                            tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR,))
                         else:
                             for SCENARIO in scenarios:
                                 if SCENARIO == "Market":
                                     AGENT_TYPE = agent_types_with_trading_with_market
-                                    p = Process(target=runSimulation,
-                                            args=(      NUM_AGENTS,
-                                                        SCENARIO,
-                                                        AGENT_TYPE,
-                                                        MOVE_PROB,
-                                                        DISTRIBUTION,
-                                                        TRADING,
-                                                        SAVE_TO_FILE,
-                                                        RUN_NR,))
-                                    processes.append(p)
-                                    p.start()
+                                    tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR,))
                                 else:
                                     for AGENT_TYPE in agent_types_with_trading_without_market:
-                                        p = Process(target=runSimulation,
-                                            args=(      NUM_AGENTS,
-                                                        SCENARIO,
-                                                        AGENT_TYPE,
-                                                        MOVE_PROB,
-                                                        DISTRIBUTION,
-                                                        TRADING,
-                                                        SAVE_TO_FILE,
-                                                        RUN_NR,))
-                                        processes.append(p)
-                                        p.start()
-        
-        # Complete the processes
-        for p in processes:
-            p.join()
+                                        tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR,))
+        # Run parallel
+        results = pool.map_async(runSimulation, tasks)
+        # Close 
+        pool.close()
+        pool.join()
 
+        for res in results.get():
+            print(res)
