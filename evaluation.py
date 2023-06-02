@@ -39,6 +39,7 @@ for group_key, files in grouped_files.items():
     plt.figure()
     for i, file_path in enumerate(files):
         data = pd.read_csv(file_path)
+        data = data[:-1]
         kmf.fit(data["T"], data["E"])
         kmf.plot_survival_function(label=f'Run {data["Run_number"][0]}')
         surv_func_ci[f"surv_func-{str(i)}"] = kmf.survival_function_
@@ -51,6 +52,7 @@ for group_key, files in grouped_files.items():
 
         time = max(data["T"])
 
+    # Imputing the values where event times dont match (causes mean to be inaccurate)
     surv_func_ci = surv_func_ci.fillna(method="ffill")
 
     columns = ["surv_func", "ci_lower", "ci_upper"]
@@ -65,7 +67,7 @@ for group_key, files in grouped_files.items():
     num = len(means["surv_func"])
     
     # PLOT
-    sns.lineplot(means["surv_func"], errorbar=("ci", 95), label="Mean", color="black")
+    # sns.lineplot(means["surv_func"], errorbar=("ci", 95), label="Mean", color="black")
 
     plt.suptitle("Kaplan-Meier survival graph", fontsize=18)
     plt.title(group_key, fontsize=10)
