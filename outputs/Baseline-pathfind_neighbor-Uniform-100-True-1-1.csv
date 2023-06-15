@@ -33,7 +33,6 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
-458.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
@@ -64,6 +63,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
+960.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
@@ -71,7 +71,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
-276.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
+1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1
 1000.0,1.0,Baseline,pathfind_neighbor,Uniform,100,True,1,1

@@ -490,7 +490,7 @@ if __name__ == "__main__":
 
     else:
         tasks = []
-        for RUN_NR in [0,2,3,4]:
+        for RUN_NR in [1]:
             for DISTRIBUTION in distributions:
                 for NUM_AGENTS in num_agents_list:
                     for MOVE_PROB in move_probabilities:
