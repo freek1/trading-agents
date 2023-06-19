@@ -12,6 +12,7 @@ from datetime import datetime
 from tqdm import tqdm
 import multiprocessing
 from multiprocessing import Process
+import traceback
 
 # Functions file
 from funcs import *
@@ -20,6 +21,7 @@ from funcs import *
 from agent import Agent
 
 def runSimulation(arg):
+    #try:
     # Unpacking input arguments
     print(arg)
     NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time, ENABLE_RENDERING = arg
@@ -314,8 +316,10 @@ def runSimulation(arg):
 
             # Updating KD-tree
             positions_tree = KDTree(agent_positions)
-            
-        avg_wood = total_wood / nr_agents
+        
+        # if nr_agents:
+        #     avg_wood = total_wood / nr_agents
+        # else: avg_wood = .0
         # print(f" {nr_agents=} {avg_wood=} ")
 
         if REGEN_ACTIVE:
@@ -417,7 +421,7 @@ def runSimulation(arg):
             print('Time up, ending sim')
             running = False
     #print("LINE 422")
-
+    
     if SAVE_TO_FILE:
         print(" Save results...")
         # Time alive of agents distribution
@@ -450,16 +454,17 @@ def runSimulation(arg):
                 "Run_number": RUN_NR,
             }
         )
-
         # Assign the adjusted events and alive_times to DataFrame columns
         try:
             data.to_csv(file_path, index=False)
-        except Exception as e:
-            print(f"{e}")
-    
-    # Clean up
-    time.sleep(0.1)
+        except Exception:
+            traceback.print_exc()
+
     pygame.quit()
+    
+    # except Exception as e:
+    #     traceback.print_exc()
+
 
 if __name__ == "__main__":
     run_time_str = datetime.now().strftime("%Y%m%d_%H%M%S") # current date and time
@@ -470,7 +475,7 @@ if __name__ == "__main__":
 
     SAVE_TO_FILE = True
 
-    distributions = ["Sides"]  # ["Uniform", "Sides", "RandomGrid"]
+    distributions = ["Uniform", "Sides", "RandomGrid"]
     num_agents_list = [50, 100, 200, 300]
     move_probabilities = [0.5, 0.8, 1]
     trading = [True, False]
@@ -487,16 +492,13 @@ if __name__ == "__main__":
 
     pool = multiprocessing.Pool()
 
-    test_run = True
-
+    test_run = 0
     if test_run:
-        ENABLE_RENDERING = False
-        SAVE_TO_FILE = True
+        ENABLE_RENDERING = 0
+        SAVE_TO_FILE = 1
         tasks = []
         for i in range(3):
-            # Create the processes
             tasks.append((200,"Market",'random',0.8,"Sides",True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
- 
         pool.map_async(runSimulation, tasks)
         pool.close()
         pool.join()

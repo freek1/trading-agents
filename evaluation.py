@@ -90,7 +90,7 @@ sns.lineplot(data=[
                     mean_survival_plots['Market-pathfind_market-Sides-200-True-1']
                 ],
              errorbar=("ci", 95))
-plt.savefig(f"imgs/kms-comparison-mvmnt-prob.png")
+plt.savefig(f"imgs/{date_time_str}/kms-comparison-mvmnt-prob.png")
 plt.close()
 
 
@@ -106,7 +106,7 @@ sns.lineplot(data=[
                     mean_survival_plots['Baseline-random-RandomGrid-200-True-1']
                 ],
              errorbar=("ci", 95))
-plt.savefig(f"imgs/kms-comparison-distributions.png")
+plt.savefig(f"imgs/{date_time_str}/kms-comparison-distributions.png")
 plt.close()
 
 
@@ -122,7 +122,7 @@ sns.lineplot(data=[
                     mean_survival_plots['Market-pathfind_market-Sides-200-True-1']
                 ],
              errorbar=("ci", 95))
-plt.savefig(f"imgs/kms-comparison-market.png")
+plt.savefig(f"imgs/{date_time_str}/kms-comparison-market.png")
 plt.close()
 
 # Effect of market
@@ -136,7 +136,7 @@ sns.lineplot(data=[
                     mean_survival_plots['Baseline-random-RandomGrid-200-False-1'],
                 ],
              errorbar=("ci", 95))
-plt.savefig(f"imgs/kms-comparison-trading.png")
+plt.savefig(f"imgs/{date_time_str}/kms-comparison-trading.png")
 plt.close()
 
 
