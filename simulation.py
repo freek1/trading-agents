@@ -492,7 +492,8 @@ if __name__ == "__main__":
 
     pool = multiprocessing.Pool()
 
-    test_run = 0
+    test_run = False
+
     if test_run:
         ENABLE_RENDERING = 0
         SAVE_TO_FILE = 1
