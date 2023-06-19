@@ -102,8 +102,14 @@ plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
 plt.title('Effect of trading', fontsize=10)
 plt.xlabel("Time steps")
 plt.ylabel("Survival probability")
-kmfs['Baseline-random-RandomGrid-50-True-0.5'].plot(label='Trading')
-kmfs['Baseline-random-RandomGrid-50-False-0.5'].plot(label='No trading')
+kmfs['Baseline-random-Sides-50-True-1'].plot(label='Trading 50')
+kmfs['Baseline-random-Sides-50-False-1'].plot(label='No trading 50')
+kmfs['Baseline-random-Sides-100-True-1'].plot(label='Trading 100')
+kmfs['Baseline-random-Sides-100-False-1'].plot(label='No trading 100')
+kmfs['Baseline-random-Sides-200-True-1'].plot(label='Trading 200')
+kmfs['Baseline-random-Sides-200-False-1'].plot(label='No trading 200')
+kmfs['Baseline-random-Sides-300-True-1'].plot(label='Trading 300')
+kmfs['Baseline-random-Sides-300-False-1'].plot(label='No trading 300')
 plt.savefig(f"imgs/{date_time_str}/kms-comparison-trading.png")
 plt.close()
 
@@ -126,7 +132,7 @@ plt.close()
 
 # Analysis
 def concatAllRuns(data_path: Path):
-    csv_files = glob.glob(os.path.join(data_path, "outputs/*.csv"))
+    csv_files = glob.glob(os.path.join(data_path, f"outputs/{date_time_str}/*.csv"))
     combined_df = pd.concat([pd.read_csv(f) for f in csv_files])
     return combined_df
 
