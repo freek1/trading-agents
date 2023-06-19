@@ -8,6 +8,7 @@ import seaborn as sns
 import copy
 import pandas as pd
 import os
+from datetime import datetime
 from tqdm import tqdm
 import multiprocessing
 from multiprocessing import Process
@@ -18,12 +19,10 @@ from funcs import *
 # Agent class
 from agent import Agent
 
-ENABLE_RENDERING = False
-
 def runSimulation(arg):
     # Unpacking input arguments
     print(arg)
-    NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR = arg
+    NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time, ENABLE_RENDERING = arg
 
     # Set the dimensions of the screen
     GRID_WIDTH, GRID_HEIGHT, CELL_SIZE = get_grid_params()
@@ -102,6 +101,8 @@ def runSimulation(arg):
                     food[x][y] = MAX_FOOD  # random.uniform(MIN_FOOD, MAX_FOOD)
 
     elif DISTRIBUTION == "RandomGrid":
+        random_array = np.random.rand(20, 20)
+        blob_types = np.where(random_array < 0.5, 0, 1)
         for x in range(0, GRID_WIDTH):
             for y in range(0, GRID_HEIGHT):
                 if (
@@ -109,7 +110,10 @@ def runSimulation(arg):
                     and int(x / BLOB_SIZE) % 2 == 0
                     and int(y / BLOB_SIZE) % 2 == 0
                 ):
-                    if random.random() > 0.5:
+                    x_blob_index = int(x / BLOB_SIZE)
+                    y_blob_index = int(y / BLOB_SIZE)
+                    #if random.random() > 0.5:
+                    if blob_types[x_blob_index, y_blob_index] == 0:
                         wood_cell_count += 1
                         wood[x][y] = MAX_WOOD  # random.uniform(MIN_WOOD, MAX_WOOD)
                     else:
@@ -327,10 +331,8 @@ def runSimulation(arg):
                         ):
                             resources[resource][x][y] += regen_rate
                         else:
-                            resources[resource][x][y] = max_resources[resource][x][
-                                y
-                            ]  # Set to max            
-
+                            resources[resource][x][y] = max_resources[resource][x][y]  # Set to max            
+        
         if ENABLE_RENDERING:
             # Clear the screen
             screen.fill(WHITE)
@@ -414,11 +416,10 @@ def runSimulation(arg):
         if time > 1000:
             print('Time up, ending sim')
             running = False
-
-    # Clean up
-    pygame.quit()
+    #print("LINE 422")
 
     if SAVE_TO_FILE:
+        print(" Save results...")
         # Time alive of agents distribution
         alive_times = np.zeros(NUM_AGENTS)
         for agent in agents:
@@ -428,7 +429,7 @@ def runSimulation(arg):
         events = np.ones(len(alive_times))
 
         # Saving data to file
-        file_path = f"outputs/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}-{MOVE_PROB}-{RUN_NR}.csv"
+        file_path = f"outputs/{run_time}/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}-{MOVE_PROB}-{RUN_NR}.csv"
 
         if not os.path.exists(file_path):
             empty = pd.DataFrame({"ignore": [0] * time})
@@ -451,15 +452,25 @@ def runSimulation(arg):
         )
 
         # Assign the adjusted events and alive_times to DataFrame columns
-        data.to_csv(file_path, index=False)
-
+        try:
+            data.to_csv(file_path, index=False)
+        except Exception as e:
+            print(f"{e}")
+    
+    # Clean up
+    time.sleep(0.1)
+    pygame.quit()
 
 if __name__ == "__main__":
-    print("Number of cpu : ", multiprocessing.cpu_count())
+    run_time_str = datetime.now().strftime("%Y%m%d_%H%M%S") # current date and time
+    if not os.path.exists(f"outputs/{run_time_str}"):
+        os.makedirs(f"outputs/{run_time_str}")
+
+    print("CPUs available: ", multiprocessing.cpu_count())
 
     SAVE_TO_FILE = True
 
-    distributions = ["Uniform", "Sides", "RandomGrid"]
+    distributions = ["Sides"]  # ["Uniform", "Sides", "RandomGrid"]
     num_agents_list = [50, 100, 200, 300]
     move_probabilities = [0.5, 0.8, 1]
     trading = [True, False]
@@ -472,17 +483,19 @@ if __name__ == "__main__":
     agent_types_with_trading_with_market = "pathfind_market"
     agent_types_with_trading_without_market = ["random", "pathfind_neighbor"]
 
-    test_run = False
-
     processes = []
 
     pool = multiprocessing.Pool()
 
+    test_run = True
+
     if test_run:
+        ENABLE_RENDERING = False
+        SAVE_TO_FILE = True
         tasks = []
         for i in range(3):
             # Create the processes
-            tasks.append((200,"Market",'random',0.8,"Uniform",True,False,i,))
+            tasks.append((200,"Market",'random',0.8,"Sides",True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
  
         pool.map_async(runSimulation, tasks)
         pool.close()
@@ -490,7 +503,7 @@ if __name__ == "__main__":
 
     else:
         tasks = []
-        for RUN_NR in [1]:
+        for RUN_NR in [1,2,3,4,5]:
             for DISTRIBUTION in distributions:
                 for NUM_AGENTS in num_agents_list:
                     for MOVE_PROB in move_probabilities:
@@ -498,15 +511,15 @@ if __name__ == "__main__":
                             if not TRADING:
                                 SCENARIO = scenarios_without_trading
                                 AGENT_TYPE = agents_without_trading
-                                tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR,))
+                                tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
                             else:
                                 for SCENARIO in scenarios:
                                     if SCENARIO == "Market":
                                         AGENT_TYPE = agent_types_with_trading_with_market
-                                        tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR,))
+                                        tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
                                     else:
                                         for AGENT_TYPE in agent_types_with_trading_without_market:
-                                            tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR,))
+                                            tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
         # Run parallel
         pool.map_async(runSimulation, tasks)
         # Close 

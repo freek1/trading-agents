@@ -8,11 +8,11 @@ import glob
 from pathlib import Path
 import seaborn as sns
 
-
 kmf = KaplanMeierFitter()
 
+date_time_str = '20230619_142330'
 data_path = Path(os.getcwd())
-csv_files = glob.glob(os.path.join(data_path, "outputs/*.csv"))
+csv_files = glob.glob(os.path.join(data_path, f"outputs/{date_time_str}/*.csv"))
 
 # Group runs by experiment
 grouped_files = {}
@@ -75,7 +75,7 @@ for group_key, files in grouped_files.items():
     plt.ylabel("Survival probability")
     plt.legend()
 
-    plt.savefig(f"imgs/km-{group_key}.png")
+    plt.savefig(f"imgs/{date_time_str}/km-{group_key}.png")
     plt.close()
 
 # Effect of movement probab. 
@@ -141,13 +141,13 @@ plt.close()
 
 
 # Analysis
-def concatAllRuns(data_path: Path):
-    csv_files = glob.glob(os.path.join(data_path, "outputs/*.csv"))
+def concatAllRuns(data_path: Path, date_time_str : str):
+    csv_files = glob.glob(os.path.join(data_path, f"outputs/{date_time_str}/*.csv"))
     combined_df = pd.concat([pd.read_csv(f) for f in csv_files])
     return combined_df
 
 
-combined_df = concatAllRuns(data_path)
+combined_df = concatAllRuns(data_path, date_time_str)
 le = LabelEncoder()
 print(combined_df.keys())
 combined_df["Agent_type"] = le.fit_transform(combined_df["Agent_type"])
