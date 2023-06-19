@@ -10,9 +10,12 @@ import seaborn as sns
 
 kmf = KaplanMeierFitter()
 
-date_time_str = '20230619_142330'
+date_time_str = '20230619_192815'
 data_path = Path(os.getcwd())
 csv_files = glob.glob(os.path.join(data_path, f"outputs/{date_time_str}/*.csv"))
+
+if not os.path.exists(f"imgs/{date_time_str}"):
+    os.makedirs(f"imgs/{date_time_str}")
 
 # Group runs by experiment
 grouped_files = {}

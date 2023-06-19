@@ -24,8 +24,8 @@ class Agent:
         self.wood_capacity = 30
         self.food_capacity = 30
         self.current_stock = {
-            "wood": random.randint(4, 8),
-            "food": random.randint(4, 8),
+            "wood": random.uniform(4, 8),
+            "food": random.uniform(4, 8),
         }
         self.upkeep_cost = {
             "wood": UPKEEP_COST,
