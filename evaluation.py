@@ -27,47 +27,26 @@ for file in csv_files:
 
     grouped_files[group_key].append(file)
 
-mean_survival_plots = pd.DataFrame()
+kmfs = {}
 
 # Print the grouped file paths
 for group_key, files in grouped_files.items():
-    # fig = plt.figure()
+    fig = plt.figure()
     # For computing the mean
     surv_func_ci = pd.DataFrame()
     amt_of_runs = len(files)
     
-    plt.figure()
+    mean_survival_plots = pd.DataFrame(columns=list("TE"))
+
     for i, file_path in enumerate(files):
         data = pd.read_csv(file_path)
-        data = data[:-1]
-        kmf.fit(data["T"], data["E"])
-        kmf.plot_survival_function(label=f'Run {data["Run_number"][0]}')
-        surv_func_ci[f"surv_func-{str(i)}"] = kmf.survival_function_
-        surv_func_ci[f"ci_lower-{str(i)}"] = kmf.confidence_interval_[
-            "KM_estimate_lower_0.95"
-        ]
-        surv_func_ci[f"ci_upper-{str(i)}"] = kmf.confidence_interval_[
-            "KM_estimate_upper_0.95"
-        ]
+        datakf = data[list('TE')]
+        mean_survival_plots = pd.concat([mean_survival_plots, datakf])
 
-        time = max(data["T"])
+    kmf = KaplanMeierFitter(label=group_key)
 
-    # Imputing the values where event times dont match (causes mean to be inaccurate)
-    surv_func_ci = surv_func_ci.fillna(method="ffill")
-
-    columns = ["surv_func", "ci_lower", "ci_upper"]
-    means = {}
-    for column in columns:
-        pair_columns = [column + "-" + str(i) for i in range(amt_of_runs)]
-        means[column] = surv_func_ci[pair_columns].mean(axis=1)
-
-    # Save each situations mean survival function
-    mean_survival_plots[f'{group_key}'] = means['surv_func']
-
-    num = len(means["surv_func"])
-    
-    # PLOT
-    # sns.lineplot(means["surv_func"], errorbar=("ci", 95), label="Mean", color="black")
+    kmfs[group_key] = kmf.fit(mean_survival_plots["T"], mean_survival_plots['E'])
+    kmf.plot(label='Mean')
 
     plt.suptitle("Kaplan-Meier survival graph", fontsize=18)
     plt.title(group_key, fontsize=10)
@@ -78,19 +57,17 @@ for group_key, files in grouped_files.items():
     plt.savefig(f"imgs/{date_time_str}/km-{group_key}.png")
     plt.close()
 
+
 # Effect of movement probab. 
 fig = plt.figure()
 plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
 plt.title('Effect of movement probability', fontsize=10)
 plt.xlabel("Time steps")
 plt.ylabel("Survival probability")
-sns.lineplot(data=[
-                    mean_survival_plots['Market-pathfind_market-Sides-200-True-0.5'],
-                    mean_survival_plots['Market-pathfind_market-Sides-200-True-0.8'],
-                    mean_survival_plots['Market-pathfind_market-Sides-200-True-1']
-                ],
-             errorbar=("ci", 95))
-plt.savefig(f"imgs/kms-comparison-mvmnt-prob.png")
+kmfs['Baseline-pathfind_neighbor-RandomGrid-50-True-0.5'].plot(label='prob. = 0.5')
+kmfs['Baseline-pathfind_neighbor-RandomGrid-50-True-0.8'].plot(label='prob. = 0.8')
+kmfs['Baseline-pathfind_neighbor-RandomGrid-50-True-1'].plot(label='prob. = 1')
+plt.savefig(f"imgs/{date_time_str}/kms-comparison-mvmnt-prob.png")
 plt.close()
 
 
@@ -100,13 +77,10 @@ plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
 plt.title('Effect of resource distribution', fontsize=10)
 plt.xlabel("Time steps")
 plt.ylabel("Survival probability")
-sns.lineplot(data=[
-                    mean_survival_plots['Baseline-random-Sides-200-True-1'],
-                    mean_survival_plots['Baseline-random-Uniform-200-True-1'],
-                    mean_survival_plots['Baseline-random-RandomGrid-200-True-1']
-                ],
-             errorbar=("ci", 95))
-plt.savefig(f"imgs/kms-comparison-distributions.png")
+kmfs['Baseline-random-Sides-200-True-1'].plot(label='Sides')
+kmfs['Baseline-random-Uniform-200-True-1'].plot(label='Uniform')
+kmfs['Baseline-random-RandomGrid-200-True-1'].plot(label='RandomGrid')
+plt.savefig(f"imgs/{date_time_str}/kms-comparison-distributions.png")
 plt.close()
 
 
@@ -116,13 +90,10 @@ plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
 plt.title('Effect of market', fontsize=10)
 plt.xlabel("Time steps")
 plt.ylabel("Survival probability")
-sns.lineplot(data=[
-                    mean_survival_plots['Baseline-random-Sides-200-True-1'],
-                    mean_survival_plots['Baseline-pathfind_neighbor-Sides-200-True-1'],
-                    mean_survival_plots['Market-pathfind_market-Sides-200-True-1']
-                ],
-             errorbar=("ci", 95))
-plt.savefig(f"imgs/kms-comparison-market.png")
+kmfs['Baseline-random-Sides-200-True-1'].plot(label='No market, random')
+kmfs['Baseline-pathfind_neighbor-Sides-200-True-1'].plot(label='No market, neighbor')
+kmfs['Market-pathfind_market-Sides-200-True-1'].plot(label='Market')
+plt.savefig(f"imgs/{date_time_str}/kms-comparison-market.png")
 plt.close()
 
 # Effect of market
@@ -131,23 +102,36 @@ plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
 plt.title('Effect of trading', fontsize=10)
 plt.xlabel("Time steps")
 plt.ylabel("Survival probability")
-sns.lineplot(data=[
-                    mean_survival_plots['Baseline-random-RandomGrid-200-True-1'],
-                    mean_survival_plots['Baseline-random-RandomGrid-200-False-1'],
-                ],
-             errorbar=("ci", 95))
-plt.savefig(f"imgs/kms-comparison-trading.png")
+kmfs['Baseline-random-RandomGrid-50-True-0.5'].plot(label='Trading')
+kmfs['Baseline-random-RandomGrid-50-False-0.5'].plot(label='No trading')
+plt.savefig(f"imgs/{date_time_str}/kms-comparison-trading.png")
 plt.close()
+
+# Test for mvmt prob weird plot
+# fig = plt.figure()
+# plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
+# plt.title('Effect of movement probability', fontsize=10)
+# plt.xlabel("Time steps")
+# plt.ylabel("Survival probability")
+# kmfs['Baseline-random-RandomGrid-50-True-0.5'].plot(label='Trading, 0.5')
+# kmfs['Baseline-random-RandomGrid-50-True-0.6'].plot(label='Trading, 0.6')
+# kmfs['Baseline-random-RandomGrid-50-True-0.7'].plot(label='Trading, 0.7')
+# kmfs['Baseline-random-RandomGrid-50-True-0.8'].plot(label='Trading, 0.8')
+# kmfs['Baseline-random-RandomGrid-50-True-0.9'].plot(label='Trading, 0.9')
+# kmfs['Baseline-random-RandomGrid-50-True-1'].plot(label='Trading 1')
+# plt.savefig(f"imgs/{date_time_str}/kms-comparison-trading-probs.png")
+# plt.show()
+# plt.close()
 
 
 # Analysis
-def concatAllRuns(data_path: Path, date_time_str : str):
-    csv_files = glob.glob(os.path.join(data_path, f"outputs/{date_time_str}/*.csv"))
+def concatAllRuns(data_path: Path):
+    csv_files = glob.glob(os.path.join(data_path, "outputs/*.csv"))
     combined_df = pd.concat([pd.read_csv(f) for f in csv_files])
     return combined_df
 
 
-combined_df = concatAllRuns(data_path, date_time_str)
+combined_df = concatAllRuns(data_path)
 le = LabelEncoder()
 print(combined_df.keys())
 combined_df["Agent_type"] = le.fit_transform(combined_df["Agent_type"])
