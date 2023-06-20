@@ -106,18 +106,18 @@ if kaplan_plots:
                 i+=1
 
                 if i == 1:
-                    ax = plt.subplot(12, 3, i)
+                    ax = plt.subplot(6, 3, i)
                 else:
-                    ax = plt.subplot(12, 3, i, sharex=ax, sharey=ax)
+                    ax = plt.subplot(6, 3, i, sharex=ax, sharey=ax)
 
                 plt.title(f'{dist}, nr_agents = {nr_agent}, prob. = {prob}', fontsize=10)
-                ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-False-{prob}'].plot(label='No market, no trading', legend=None)
+                ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-False-{prob}'].plot(label='No market, no trading', legend=None, linewidth=2)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-True-{prob}'].plot(label='No market, random', legend=None)
+                ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-True-{prob}'].plot(label='No market, random', legend=None, linewidth=2)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-True-{prob}'].plot(label='No market, neighbor', legend=None)
+                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-True-{prob}'].plot(label='No market, neighbor', legend=None, linewidth=2)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Market-pathfind_market-{dist}-{nr_agent}-True-{prob}'].plot(label='Market', legend=None)
+                ax = kmfs[f'Market-pathfind_market-{dist}-{nr_agent}-True-{prob}'].plot(label='Market', legend=None, linewidth=2)
                 ax.xaxis.set_label_text('')
     
     handles, labels = ax.get_legend_handles_labels()
@@ -126,8 +126,8 @@ if kaplan_plots:
     plt.subplots_adjust(wspace=0.3)
     fig.text(0.5, 0.03, 'Time steps', ha='center', va='center', fontsize=14)
     fig.text(0.03,  0.5, 'Survival probability', ha='center', va='center', rotation='vertical', fontsize=14)
-    plt.suptitle("Kaplan-Meier survival graphs", fontsize=20, y=0.98)
-    plt.savefig(f"imgs/{date_time_str}/kms-comparison-market-uber.png")
+    plt.suptitle("Kaplan-Meier survival graphs (B)", fontsize=20, y=0.98)
+    plt.savefig(f"imgs/{date_time_str}/kms-comparison-market-uber.pdf")
     plt.close()
 
     # Effect of trading??
