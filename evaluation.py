@@ -69,9 +69,9 @@ if kaplan_plots:
 
     # Effect of movement probab. 
     fig = plt.figure()
-    kmfs['Baseline-pathfind_neighbor-RandomGrid-50-True-0.5'].plot(label='prob. = 0.5')
-    kmfs['Baseline-pathfind_neighbor-RandomGrid-50-True-0.8'].plot(label='prob. = 0.8')
-    kmfs['Baseline-pathfind_neighbor-RandomGrid-50-True-1'].plot(label='prob. = 1')
+    kmfs['Baseline-pathfind_neighbor-RandomGrid-50-0.5'].plot(label='prob. = 0.5')
+    kmfs['Baseline-pathfind_neighbor-RandomGrid-50-0.8'].plot(label='prob. = 0.8')
+    kmfs['Baseline-pathfind_neighbor-RandomGrid-50-1'].plot(label='prob. = 1')
     plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
     plt.title('Effect of movement probability', fontsize=10)
     plt.xlabel("Time steps")
@@ -82,9 +82,9 @@ if kaplan_plots:
 
     # Effect of distribution
     fig = plt.figure()
-    kmfs['Baseline-random-Sides-200-True-1'].plot(label='Sides')
-    kmfs['Baseline-random-Uniform-200-True-1'].plot(label='Uniform')
-    kmfs['Baseline-random-RandomGrid-200-True-1'].plot(label='RandomGrid')
+    kmfs['Baseline-random-Sides-200-1'].plot(label='Sides')
+    kmfs['Baseline-random-Uniform-200-1'].plot(label='Uniform')
+    kmfs['Baseline-random-RandomGrid-200-1'].plot(label='RandomGrid')
     plt.savefig(f"imgs/{date_time_str}/kms-comparison-distributions.png")
     plt.close()
 
@@ -111,13 +111,13 @@ if kaplan_plots:
                     ax = plt.subplot(6, 3, i, sharex=ax, sharey=ax)
 
                 plt.title(f'{dist}, nr_agents = {nr_agent}, prob. = {prob}', fontsize=10)
-                ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-False-{prob}'].plot(label='No market, no trading', legend=None, linewidth=2)
+                ax = kmfs[f'Baseline-no_trade-{dist}-{nr_agent}-{prob}'].plot(label='No market, no trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-True-{prob}'].plot(label='No market, random', legend=None, linewidth=2)
+                ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-{prob}'].plot(label='No market, random', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-True-{prob}'].plot(label='No market, neighbor', legend=None, linewidth=2)
+                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-{prob}'].plot(label='No market, neighbor', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Market-pathfind_market-{dist}-{nr_agent}-True-{prob}'].plot(label='Market', legend=None, linewidth=2)
+                ax = kmfs[f'Market-pathfind_market-{dist}-{nr_agent}-{prob}'].plot(label='Market', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
     
     handles, labels = ax.get_legend_handles_labels()
@@ -130,40 +130,7 @@ if kaplan_plots:
     plt.savefig(f"imgs/{date_time_str}/kms-comparison-market-uber.pdf")
     plt.close()
 
-    # Effect of trading??
-    fig = plt.figure()
-    kmfs['Baseline-random-Sides-50-True-1'].plot(label='Trading 50')
-    kmfs['Baseline-random-Sides-50-False-1'].plot(label='No trading 50')
-    kmfs['Baseline-random-Sides-100-True-1'].plot(label='Trading 100')
-    kmfs['Baseline-random-Sides-100-False-1'].plot(label='No trading 100')
-    kmfs['Baseline-random-Sides-200-True-1'].plot(label='Trading 200')
-    kmfs['Baseline-random-Sides-200-False-1'].plot(label='No trading 200')
-    kmfs['Baseline-random-Sides-300-True-1'].plot(label='Trading 300')
-    kmfs['Baseline-random-Sides-300-False-1'].plot(label='No trading 300')
-    plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
-    plt.title('Effect of trading', fontsize=10)
-    plt.xlabel("Time steps")
-    plt.ylabel("Survival probability")
-    plt.savefig(f"imgs/{date_time_str}/kms-comparison-trading.png")
-    plt.close()
-
-    # Test for mvmt prob weird plot
-    # fig = plt.figure()
-    # plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
-    # plt.title('Effect of movement probability', fontsize=10)
-    # plt.xlabel("Time steps")
-    # plt.ylabel("Survival probability")
-    # kmfs['Baseline-random-RandomGrid-50-True-0.5'].plot(label='Trading, 0.5')
-    # kmfs['Baseline-random-RandomGrid-50-True-0.6'].plot(label='Trading, 0.6')
-    # kmfs['Baseline-random-RandomGrid-50-True-0.7'].plot(label='Trading, 0.7')
-    # kmfs['Baseline-random-RandomGrid-50-True-0.8'].plot(label='Trading, 0.8')
-    # kmfs['Baseline-random-RandomGrid-50-True-0.9'].plot(label='Trading, 0.9')
-    # kmfs['Baseline-random-RandomGrid-50-True-1'].plot(label='Trading 1')
-    # plt.savefig(f"imgs/{date_time_str}/kms-comparison-trading-probs.png")
-    # plt.show()
-    # plt.close()
-
-
+    
 if cox_analysis:
     # Analysis
     def concatAllRuns(data_path: Path):
