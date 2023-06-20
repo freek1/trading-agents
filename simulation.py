@@ -36,7 +36,7 @@ def runSimulation(arg):
             pygame.init()
             screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-        fps = 144
+        fps = 20
         clock = pygame.time.Clock()
         time = 1
 
@@ -468,12 +468,12 @@ def runSimulation(arg):
 
 if __name__ == "__main__":
     run_time_str = datetime.now().strftime("%Y%m%d_%H%M%S") # current date and time
-    if not os.path.exists(f"outputs/{run_time_str}"):
-        os.makedirs(f"outputs/{run_time_str}")
 
     print("CPUs available: ", multiprocessing.cpu_count())
 
     SAVE_TO_FILE = True
+    if not os.path.exists(f"outputs/{run_time_str}") and SAVE_TO_FILE:
+        os.makedirs(f"outputs/{run_time_str}")
 
     distributions = ['Uniform','RandomGrid'] #["Uniform", "Sides", "RandomGrid"]
     num_agents_list = [50, 100, 200, 300]
@@ -492,14 +492,13 @@ if __name__ == "__main__":
 
     pool = multiprocessing.Pool()
 
-    test_run = False
-
+    test_run = 1
     if test_run:
-        ENABLE_RENDERING = 0
-        SAVE_TO_FILE = 1
+        ENABLE_RENDERING = 1
+        SAVE_TO_FILE = 0
         tasks = []
-        for i in range(3):
-            tasks.append((200,"Market",'random',0.8,"Sides",True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
+        for i in range(1):
+            tasks.append((50,'Baseline','random',1,'RandomGrid',True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
         pool.map_async(runSimulation, tasks)
         pool.close()
         pool.join()
