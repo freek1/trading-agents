@@ -63,7 +63,7 @@ if kaplan_plots:
         plt.ylabel("Survival probability")
         plt.legend()
 
-        plt.savefig(f"imgs/{date_time_str}/km-{group_key}.png")
+        plt.savefig(f"imgs/{date_time_str}/km-{group_key}.pdf")
         plt.close()
 
 

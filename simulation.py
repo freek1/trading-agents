@@ -492,14 +492,14 @@ if __name__ == "__main__":
 
     pool = multiprocessing.Pool()
 
-    test_run = False
+    test_run = True
 
     if test_run:
-        ENABLE_RENDERING = 0
-        SAVE_TO_FILE = 1
+        ENABLE_RENDERING = 1
+        SAVE_TO_FILE = 0
         tasks = []
-        for i in range(3):
-            tasks.append((200,"Market",'random',0.8,"Sides",True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
+        for i in range(1):
+            tasks.append((50,"Baseline",'random',0.8,"RandomGrid",True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
         pool.map_async(runSimulation, tasks)
         pool.close()
         pool.join()
