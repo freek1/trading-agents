@@ -490,68 +490,65 @@ def runSimulation(arg):
     except Exception as e:
         traceback.print_exc()
         
-run_time_str = datetime.now().strftime("%Y%m%d_%H%M%S") # current date and time
-arg = 100, 'Baseline', 'pathfind_neighbor', 1, 'Sides', True, False, 1, run_time_str, True 
-runSimulation(arg)
-# if __name__ == "__main__":
-#     run_time_str = datetime.now().strftime("%Y%m%d_%H%M%S") # current date and time
+if __name__ == "__main__":
+    run_time_str = datetime.now().strftime("%Y%m%d_%H%M%S") # current date and time
 
-#     print("CPUs available: ", multiprocessing.cpu_count())
+    print("CPUs available: ", multiprocessing.cpu_count())
 
-#     SAVE_TO_FILE = True
-#     if not os.path.exists(f"outputs/{run_time_str}") and SAVE_TO_FILE:
-#         os.makedirs(f"outputs/{run_time_str}")
+    SAVE_TO_FILE = True
+    if not os.path.exists(f"outputs/{run_time_str}") and SAVE_TO_FILE:
+        os.makedirs(f"outputs/{run_time_str}")
 
 
-#     distributions = ['Uniform', 'Sides', 'RandomGrid'] #["Uniform", "Sides", "RandomGrid"]
-#     num_agents_list = [50, 100, 200, 300]
-#     move_probabilities = [0.5, 0.8, 1]
-#     trading = [True, False]
-#     scenarios = ["Baseline", "Market"]
-#     agent_types = ["random", "pathfind_neighbor", "pathfind_market"]
+    distributions = ['Uniform', 'Sides', 'RandomGrid'] #["Uniform", "Sides", "RandomGrid"]
+    num_agents_list = [50, 100, 200, 300]
+    move_probabilities = [0.5, 0.8, 1]
+    trading = [True, False]
+    scenarios = ["Baseline", "Market"]
+    agent_types = ["random", "pathfind_neighbor", "pathfind_market"]
 
 
-#     scenarios_without_trading = "Baseline"
-#     agents_without_trading = "random"
-#     agent_types_with_trading_with_market = "pathfind_market"
-#     agent_types_with_trading_without_market = ["random", "pathfind_neighbor"]
+    scenarios_without_trading = "Baseline"
+    agents_without_trading = "random"
+    agent_types_with_trading_with_market = "pathfind_market"
+    agent_types_with_trading_without_market = ["random", "pathfind_neighbor"]
 
-#     processes = []
+    processes = []
 
-#     pool = multiprocessing.Pool()
+    pool = multiprocessing.Pool()
 
-#     test_run = 0
-#     if test_run:
-#         ENABLE_RENDERING = 1
-#         SAVE_TO_FILE = 0
-#         tasks = []
-#         for i in range(1):
-#             tasks.append((50,'Baseline','random',1,'RandomGrid',True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
-#         pool.map_async(runSimulation, tasks)
-#         pool.close()
-#         pool.join()
+    test_run = 0
+    if test_run:
+        ENABLE_RENDERING = 1
+        SAVE_TO_FILE = 0
+        tasks = []
+        for i in range(1):
+            tasks.append((50,'Baseline','random',1,'RandomGrid',True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
+        pool.map_async(runSimulation, tasks)
+        pool.close()
+        pool.join()
 
-#     else:
-#         tasks = []
-#         for RUN_NR in [1,2,3,4,5]:
-#             for DISTRIBUTION in distributions:
-#                 for NUM_AGENTS in num_agents_list:
-#                     for MOVE_PROB in move_probabilities:
-#                         for TRADING in trading:
-#                             if not TRADING:
-#                                 SCENARIO = scenarios_without_trading
-#                                 AGENT_TYPE = agents_without_trading
-#                                 tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
-#                             else:
-#                                 for SCENARIO in scenarios:
-#                                     if SCENARIO == "Market":
-#                                         AGENT_TYPE = agent_types_with_trading_with_market
-#                                         tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
-#                                     else:
-#                                         for AGENT_TYPE in agent_types_with_trading_without_market:
-#                                             tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
-#         # Run parallel
-#         pool.map_async(runSimulation, tasks)
-#         # Close 
-#         pool.close()
-#         pool.join()
+    else:
+        tasks = []
+        for RUN_NR in [1,2,3,4,5]:
+            for DISTRIBUTION in distributions:
+                for NUM_AGENTS in num_agents_list:
+                    for MOVE_PROB in move_probabilities:
+                        for TRADING in trading:
+                            if not TRADING:
+                                SCENARIO = scenarios_without_trading
+                                AGENT_TYPE = agents_without_trading
+                                tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
+                            else:
+                                for SCENARIO in scenarios:
+                                    if SCENARIO == "Market":
+                                        AGENT_TYPE = agent_types_with_trading_with_market
+                                        tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
+                                    else:
+                                        for AGENT_TYPE in agent_types_with_trading_without_market:
+                                            tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
+        # Run parallel
+        pool.map_async(runSimulation, tasks)
+        # Close 
+        pool.close()
+        pool.join()
