@@ -34,16 +34,12 @@ class Agent:
         self.behaviour = ("",)  # 'trade_wood', 'trade_food'
         self.movement = "random"  # initialize as random for all agent types, since their movement changes only when wanting to trade
         self.goal_position = (None, None)  # x, y
-        self.nearest_neighbors = np.array(
-            [[-1, -1]]
-        )  # List of (x,y) of the nearest neighbors
+        self.nearest_neighbors = []  # List of (x,y) of the nearest neighbors
         self.closest_market_pos = (None, None)
         self.agent_type = agent_type
-        self.blacklisted_agents = np.array(
-            [[-1, -1]]
-        )  # List of (x,y) of the blacklisted agents
         self.in_market = False
         self.market = market
+        self.treshold_new_neighbours = 100
 
     def print_info(self):
         if self.alive:
@@ -88,7 +84,7 @@ class Agent:
             self.behaviour = ""
             self.movement = "random"
 
-    def chooseStep(self, market):
+    def chooseStep(self, agent_positions):
         """Pick the next direction to walk in for the agent
         Input:
             self: agent
@@ -98,25 +94,14 @@ class Agent:
         """
         dx, dy = 0, 0
         # compute where to
-        if self.movement == "pathfind_neighbor":
-            # TODO: find out how it can end up with unequal amount of values (it should be 5x2=10, sometimes its 9)
-            if len(self.nearest_neighbors.reshape(-1)) % 2 != 0:
-                return dx, dy
-
-            self.nearest_neighbors = self.nearest_neighbors.reshape(-1, 2)
-            self.blacklisted_agents = np.array(self.blacklisted_agents).reshape(-1, 2)
-
-            set1 = set(tuple(x) for x in self.nearest_neighbors)
-            set2 = set(tuple(x) for x in self.blacklisted_agents)
-            not_blacklisted_neighbors = list(set1 - set2)
-
-            # If it could not find any suitable neighbors, move randomly
+        if self.movement == "pathfind_neighbor" and len(self.nearest_neighbors)>0: 
+            # If it could not find any suitable neighbors, move randomly for 100 timesteps
             # -> Force it to move randomly
-            if len(not_blacklisted_neighbors) == 0 or len(self.nearest_neighbors == 0):
-                self.movement = "random"
-            else:
-                x_nn, y_nn = not_blacklisted_neighbors[0]
-                self.goal_position = (x_nn, y_nn)
+            x_nn, y_nn = agent_positions[self.nearest_neighbors[0]]
+            self.goal_position = [x_nn, y_nn]
+            
+        if len(self.nearest_neighbors)==0:
+            self.movement = "random"
 
         if self.movement == "pathfind_market":
             self.goal_position = self.closest_market_pos
@@ -136,6 +121,7 @@ class Agent:
                 dx = -1
             elif goal_x > self.x:
                 dx = 1
+                
         elif self.movement == "random":
             dx = random.randint(-1, 1)
             dy = random.randint(-1, 1)
@@ -192,29 +178,9 @@ class Agent:
         return traded_quantity
 
     def removeClosestNeighbor(self):
-        """Removes closest neighbor from list and adds it to the blacklist"""
-        # Check for valid shape
-        if len(self.nearest_neighbors.reshape(-1)) % 2 != 0:
-            return
-        self.nearest_neighbors = self.nearest_neighbors.reshape(-1, 2)
-
-        # Check if element is not already in the blacklist
-        to_blacklist = self.nearest_neighbors[0]
-        array2_reshaped = np.repeat(
-            [to_blacklist.tolist()], self.blacklisted_agents.shape[0], axis=0
-        )
-
-        is_unique = np.array_equal(self.blacklisted_agents, array2_reshaped)
-
-        # Add element to the blacklist
-        if is_unique:
-            self.blacklisted_agents = np.append(
-                self.blacklisted_agents, [to_blacklist.tolist()], axis=1
-            )
-
-        # Remove from the nearest neighbors list (to not search again)
+        """Removes closest neighbor from list"""
         self.nearest_neighbors = np.delete(self.nearest_neighbors, 0)
-
+        
     def findNonMarketSquare(self):
         idx_market_false = np.argwhere(np.invert(self.market))
         smallest_distance = np.inf
@@ -308,8 +274,11 @@ class Agent:
     def setNearestNeighbors(self, nearest_neighbors):
         self.nearest_neighbors = nearest_neighbors
 
-    def clearBlacklistedAgents(self):
-        self.blacklisted_agents = np.array([[-1, -1]])
-
     def setClosestMarketPos(self, closest_market_pos):
         self.closest_market_pos = closest_market_pos
+        
+    def getNearestNeigbors(self):
+        return self.nearest_neighbors
+    
+    def getTresholdNewNeighbours(self):
+        return self.treshold_new_neighbours

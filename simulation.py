@@ -13,6 +13,7 @@ from tqdm import tqdm
 import multiprocessing
 from multiprocessing import Process
 import traceback
+import collections
 
 # Functions file
 from funcs import *
@@ -163,13 +164,17 @@ def runSimulation(arg):
             agent = Agent(
                 i, x, y, AGENT_TYPE, color, market
             )  # color = np.array(agent_colours[i])*255
+            
             agents.append(agent)
 
             # Save agent position for the KD-tree
             agent_positions[i] = [x, y]
             # Initialize KDTree
             positions_tree = KDTree(agent_positions)
-
+        
+            if AGENT_TYPE == 'pathfind_neighbor':
+                GetSetClosestNeighbor(positions_tree, agent, 5, 20)
+        
         # Run the simulation
         running = True
 
@@ -188,7 +193,7 @@ def runSimulation(arg):
 
             # Update the agents
             for agent in agents:
-                if agent.isAlive():
+                if agent.isAlive():   
                     agent.updateBehaviour()
                     total_wood += agent.getCurrentStock('wood')
                     nr_agents += 1
@@ -199,6 +204,13 @@ def runSimulation(arg):
 
                     # Do agent behaviour
                     if TRADING:
+                        
+                        if AGENT_TYPE == "pathfind_neighbor" and len(agent.nearest_neighbors)>0:
+                            if agent.treshold_new_neighbours>0:
+                                agent.treshold_new_neighbours -= 1
+                            elif agent.treshold_new_neighbours==0:
+                                GetSetClosestNeighbor(positions_tree, agent, 5, 20)
+                            
                         if (
                             agent.getBehaviour() == "trade_wood"
                             or agent.getBehaviour() == "trade_food"
@@ -222,11 +234,12 @@ def runSimulation(arg):
                                     if agent.compatible(agent_B):
                                         traded_qty = agent.trade(agent_B)
                                         traded = True
-                                        agent.clearBlacklistedAgents()
                                     else:
                                         # If not compatible, find next nearest neighbor
-                                        if AGENT_TYPE == "pathfind_neighbor":
-                                            agent.removeClosestNeighbor()
+                                        if AGENT_TYPE == "pathfind_neighbor" and len(agent.nearest_neighbors)>0:
+                                            if np.all(agent_positions[agent.getNearestNeigbors()[0]] == [x_check, y_check]):
+                                                agent.removeClosestNeighbor()
+
                         elif (
                             agent.getBehaviour() == "trade_wood"
                             or agent.getBehaviour() == "trade_food"
@@ -291,33 +304,19 @@ def runSimulation(arg):
                     # Probabalistic movement
                     if random.uniform(0, 1) < MOVE_PROB:
                         # Choose step
-                        preferred_direction = agent.chooseStep(market)
+                        preferred_direction = agent.chooseStep(agent_positions)
                         moveAgent(preferred_direction, agent, agents)
 
                     # Update market bool
                     agent.setInMarket(in_market(agent, market))
 
-                    # Distance and indices of 5 nearest neighbors within view radius
-                    view_radius = 20
-                    dist, idx = positions_tree.query([[x, y]], k=5)
-                    for i, d in enumerate(dist[0]):
-                        if d > view_radius:
-                            # neighbors_too_far += 1
-                            np.delete(dist, i)
-                            np.delete(idx, i)
-
-                    if len(idx) > 0:
-                        agent.setNearestNeighbors(agent_positions[idx][0])
-
                     # closest distance to market
                     agent.setClosestMarketPos(findClosestMarketPos(agent, market))
+                    
+                    agent_positions[agent.getID()] = agent.getPos()
+                    # Updating KD-tree
+                    positions_tree = KDTree(agent_positions)
 
-                    # Update agent position for the KD-tree
-                    agent_positions[i] = [x, y]
-
-                # Updating KD-tree
-                positions_tree = KDTree(agent_positions)
-            
             # if nr_agents:
             #     avg_wood = total_wood / nr_agents
             # else: avg_wood = .0
@@ -474,7 +473,6 @@ def runSimulation(arg):
     except Exception as e:
         traceback.print_exc()
 
-
 if __name__ == "__main__":
     run_time_str = datetime.now().strftime("%Y%m%d_%H%M%S") # current date and time
 
@@ -485,7 +483,7 @@ if __name__ == "__main__":
         os.makedirs(f"outputs/{run_time_str}")
 
 
-    distributions = ['Uniform','RandomGrid'] #["Uniform", "Sides", "RandomGrid"]
+    distributions = ['Uniform', 'Sides', 'RandomGrid'] #["Uniform", "Sides", "RandomGrid"]
     num_agents_list = [50, 100, 200, 300]
     move_probabilities = [0.5, 0.8, 1]
     trading = [True, False]

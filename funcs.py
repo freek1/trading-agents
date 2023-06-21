@@ -145,3 +145,20 @@ def findClosestMarketPos(agent: Agent, market):
 def in_market(agent: Agent, market):
     x, y = agent.getPos()
     return market[x][y]
+
+def GetSetClosestNeighbor(positions_tree, agent:Agent, k, view_radius):
+    # Update agent position for the KD-tree
+    x, y = agent.getPos()
+    
+    # Distance and indices of 5 nearest neighbors within view radius
+    view_radius = 20
+    dist, idx = positions_tree.query([[x, y]], k=k)
+    for i, d in enumerate(dist[0]):
+        if d > view_radius:
+            # neighbors_too_far += 1
+            np.delete(dist, i)
+            np.delete(idx, i)
+    if len(idx) > 0:
+        idx = idx[0]
+        idx = np.delete(idx, np.where(idx == agent.getID()))
+        agent.setNearestNeighbors(idx)
