@@ -27,6 +27,9 @@ if kaplan_plots:
     if not os.path.exists(f"imgs/{date_time_str}"):
         os.makedirs(f"imgs/{date_time_str}")
 
+    if not os.path.exists(f"output/{date_time_str}/results"):
+        os.makedirs(f"imgs/{date_time_str}/results")
+
     # Group runs by experiment
     grouped_files = {}
     for file in csv_files:
