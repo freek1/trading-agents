@@ -21,7 +21,7 @@ Research questions:
 #### Gifs: 
 Some gifs of the simulations
 
-![random-sides gif](imgs/random-sides.gif)
+![random-sides gif](imgs/non-trading-uniform.gif)
 ![random-sides gif](imgs/random-sides.gif)
 ![random-sides gif](imgs/random-sides.gif)
 ![random-sides gif](imgs/random-sides.gif)
