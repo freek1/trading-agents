@@ -88,6 +88,33 @@ if kaplan_plots:
     plt.savefig(f"imgs/{date_time_str}/kms-comparison-distributions.png")
     plt.close()
 
+    # Effect of trading single figure
+    fig = plt.figure()
+    kmfs[f'Baseline-no_trade-Sides-50-1'].plot(label='No trading')
+    kmfs[f'Baseline-random-Sides-50-1'].plot(label='Random trading')
+    kmfs[f'Baseline-pathfind_neighbor-Sides-50-1'].plot(label='Neighbor trading')
+    kmfs[f'Market-pathfind_market-Sides-50-1'].plot(label='Market trading')
+    plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
+    plt.title('Effect of trading. Sides, Nr agents = 50, prob. = 0.8', fontsize=10)
+    plt.xlabel("Time steps")
+    plt.ylabel("Survival probability")
+    plt.savefig(f"imgs/{date_time_str}/kms-comparison-trading-sides.pdf")
+    plt.close()
+
+    # Effect of trading single figure
+    fig = plt.figure()
+    kmfs[f'Baseline-no_trade-Uniform-300-0.8'].plot(label='No trading')
+    kmfs[f'Baseline-random-Uniform-300-0.8'].plot(label='Random trading')
+    kmfs[f'Baseline-pathfind_neighbor-Uniform-300-0.8'].plot(label='Neighbor trading')
+    kmfs[f'Market-pathfind_market-Uniform-300-0.8'].plot(label='Market trading')
+    plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
+    plt.title('Effect of trading. Unform, Nr agents = 300, prob. = 0.8', fontsize=10)
+    plt.xlabel("Time steps")
+    plt.ylabel("Survival probability")
+    plt.savefig(f"imgs/{date_time_str}/kms-comparison-trading-uniform.pdf")
+    plt.close()
+
+    
 
     # All combinations image (for Appendix)
     fig = plt.figure(figsize=(10, 20))
@@ -106,18 +133,18 @@ if kaplan_plots:
                 i+=1
 
                 if i == 1:
-                    ax = plt.subplot(6, 3, i)
+                    ax = plt.subplot(12, 3, i)
                 else:
-                    ax = plt.subplot(6, 3, i, sharex=ax, sharey=ax)
+                    ax = plt.subplot(12, 3, i, sharex=ax, sharey=ax)
 
                 plt.title(f'{dist}, nr_agents = {nr_agent}, prob. = {prob}', fontsize=10)
-                ax = kmfs[f'Baseline-no_trade-{dist}-{nr_agent}-{prob}'].plot(label='No market, no trading', legend=None, linewidth=1)
+                ax = kmfs[f'Baseline-no_trade-{dist}-{nr_agent}-{prob}'].plot(label='No trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-{prob}'].plot(label='No market, random', legend=None, linewidth=1)
+                ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-{prob}'].plot(label='Random trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-{prob}'].plot(label='No market, neighbor', legend=None, linewidth=1)
+                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-{prob}'].plot(label='Neighbor trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Market-pathfind_market-{dist}-{nr_agent}-{prob}'].plot(label='Market', legend=None, linewidth=1)
+                ax = kmfs[f'Market-pathfind_market-{dist}-{nr_agent}-{prob}'].plot(label='Market trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
     
     handles, labels = ax.get_legend_handles_labels()
