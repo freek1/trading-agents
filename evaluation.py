@@ -7,7 +7,7 @@ import os
 import glob
 from pathlib import Path
 
-# If you want to run the cox analyses, you need to have kaplan_plots = True, as it generates the data
+# If you want to run the cox analyses, you need to have kaplan_plots = True, as it generates the data.
 kaplan_plots = True
 cox_analysis_blobs = True
 cox_analysis_sides = True
