@@ -29,10 +29,10 @@ Some gifs of the simulations
 #### Situations: 
 | Situations | Description |
 | ------ | ------ |
-|  Random agents without trading  |  `Baseline, random agent, DISTRIBUTION, trading=false`  |
-|  Random agents with trading  |  `Baseline, random agent, DISTRIBUTION, trading=true`  |
-|  Agents pathfinding to nearest neighbor to trade  |  `Baseline, pathfind agent, DISTRIBUTION, trading=true`  |
-|  Agents pathfinding to a central market place to trade  |  `Market, market agent, DISTRIBUTION, trading=true`  |
+|  Random agents without trading = `non-trading agent` |  `Baseline, random agent, DISTRIBUTION, trading=false`  |
+|  Random agents with trading = `random-trading agent` |  `Baseline, random agent, DISTRIBUTION, trading=true`  |
+|  Agents pathfinding to nearest neighbor to trade = `search-trading agent` |  `Baseline, pathfind agent, DISTRIBUTION, trading=true`  |
+|  Agents pathfinding to a central market place to trade = `market-trading agent`  |  `Market, market agent, DISTRIBUTION, trading=true`  |
 
 
 All situations are tested on three resource distributions: 
@@ -41,7 +41,7 @@ All situations are tested on three resource distributions:
 - All resources are randomly uniformly distributed on all squares.
 
 #### Analysis: 
-Cox Proportional-Hazards model (also gives hazard ratio).
+Cox Proportional-Hazards model (also gives hazard ratio) based on Kaplan-Meier curves. Both from the `lifelines` package [4].
 
 ## Usage of simulation
 
@@ -64,7 +64,13 @@ Running `simulation.py` generates data in `outputs/your_datetime`. These data ar
 ## Sources
 [1] J. M. Epstein and R. Axtell, Growing artificial societies: social science from the bottom up.
 Brookings Institution Press, 1996
+
 [2] A. Wilhite, “Bilateral trade and ‘small-world’networks,” Computational economics, vol. 18, pp. 49–
 64, 2001
+
 [3] A. E. Nyoko, R. P. Fanggidae, and M. Ose, “The study of the barter trading system at wulandoni
 barter market,” EAI, Jul. 2022. doi: 10.4108/eai.25-11-2021.2319357.
+
+[4] C. Davidson-Pilon, “Lifelines: Survival analysis in python,” Journal of Open Source Software,
+vol. 4, no. 40, p. 1317, 2019. doi: 10.21105/joss.01317. [Online]. Available: https://doi.org/
+10.21105/joss.01317
