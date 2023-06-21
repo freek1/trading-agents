@@ -16,7 +16,7 @@ cox_analysis_nr_agents_sides = True
 cox_analysis_alldata = True
 
 # Set this to the newest generated data datetime.
-date_time_str = '20230619_192815'
+date_time_str = '20230621_173711'
 data_path = Path(os.getcwd())
 
 if kaplan_plots:
