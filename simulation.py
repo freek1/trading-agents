@@ -9,11 +9,8 @@ import copy
 import pandas as pd
 import os
 from datetime import datetime
-from tqdm import tqdm
 import multiprocessing
-from multiprocessing import Process
 import traceback
-import collections
 
 # Functions file
 from funcs import *
