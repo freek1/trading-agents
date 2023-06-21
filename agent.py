@@ -39,7 +39,7 @@ class Agent:
         self.agent_type = agent_type
         self.in_market = False
         self.market = market
-        self.treshold_new_neighbours = 100
+        self.treshold_new_neighbours = 50
 
     def print_info(self):
         if self.alive:
