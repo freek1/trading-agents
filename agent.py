@@ -5,12 +5,12 @@ import math
 
 resources = ["wood", "food"]
 TRADE_THRESHOLD = 1.5
-TRADE_QTY = 1
 UPKEEP_COST = 0.035  # was 0.02
 
 DARK_BROWN = (60, 40, 0)
 DARK_GREEN = (0, 102, 34)
 PINK = (255, 192, 203)
+ORANGE = (240, 70, 0)
 
 
 class Agent:
@@ -39,7 +39,7 @@ class Agent:
         self.agent_type = agent_type
         self.in_market = False
         self.market = market
-        self.treshold_new_neighbours = 50
+        self.treshold_new_neighbours = 0
 
     def print_info(self):
         if self.alive:
@@ -57,33 +57,52 @@ class Agent:
     def set_movement(self, movement):
         self.movement = movement
 
-    def updateBehaviour(self):
+    def updateBehaviour(self, positions_tree, agent_positions, agents, k, view_radius):
         # Update trade behaviour
         ratio = self.calculateResourceRatio("wood", "food")
         if (
             ratio > TRADE_THRESHOLD
-            and all(i >= TRADE_QTY for i in list(self.current_stock.values()))
-            and abs(self.current_stock["wood"] - self.current_stock["food"])
-            >= TRADE_QTY
         ):
             self.color = DARK_BROWN
             self.behaviour = "trade_wood"  # means selling wood
             # adapt movement behaviour
             self.movement = self.agent_type
-
+            if len(self.nearest_neighbors)==0 and self.treshold_new_neighbours==0:
+                self.getSetClosestNeighbor(positions_tree, agents, min(k, len(agent_positions)), view_radius)
+                self.treshold_new_neighbours=50
         elif (
             1 / ratio > TRADE_THRESHOLD
-            and all(i >= TRADE_QTY for i in list(self.current_stock.values()))
-            and abs(self.current_stock["wood"] - self.current_stock["food"])
-            >= TRADE_QTY
         ):
             self.color = DARK_GREEN
             self.behaviour = "trade_food"  # means selling food
             self.movement = self.agent_type
+            if len(self.nearest_neighbors)==0 and self.treshold_new_neighbours==0:
+                self.getSetClosestNeighbor(positions_tree, agents, min(k, len(agent_positions)), view_radius)
+                self.treshold_new_neighbours=50
         else:
             self.behaviour = ""
             self.movement = "random"
-
+            
+    def getSetClosestNeighbor(self, positions_tree, agents, k, view_radius):
+        # Update agent position for the KD-tree
+        x, y = self.getPos()
+        
+        # Distance and indices of 5 nearest neighbors within view radius
+        view_radius = 20
+        dist, idx = positions_tree.query([[x, y]], k=k)
+        for i, d in enumerate(dist[0]):
+            if d > view_radius:
+                # neighbors_too_far += 1
+                np.delete(dist, i)
+                np.delete(idx, i)
+        if len(idx) > 0:
+            idx = idx[0]
+            neighboring_agents = []
+            for ids in idx:
+                if self != agents[ids]:
+                    neighboring_agents.append(agents[ids])
+            self.setNearestNeighbors(neighboring_agents)
+    
     def chooseStep(self, agent_positions):
         """Pick the next direction to walk in for the agent
         Input:
@@ -97,10 +116,10 @@ class Agent:
         if self.movement == "pathfind_neighbor" and len(self.nearest_neighbors)>0: 
             # If it could not find any suitable neighbors, move randomly for 100 timesteps
             # -> Force it to move randomly
-            x_nn, y_nn = agent_positions[self.nearest_neighbors[0]]
+            x_nn, y_nn = self.nearest_neighbors[0].getPos()
             self.goal_position = [x_nn, y_nn]
             
-        if len(self.nearest_neighbors)==0:
+        if len(self.nearest_neighbors)==0 and self.movement == "pathfind_neighbor":
             self.movement = "random"
 
         if self.movement == "pathfind_market":
@@ -152,34 +171,31 @@ class Agent:
             return False
 
     def trade(self, agent_B):
-        old_color = self.color
         traded_quantity = 0.0
+        minimum_difference = min(abs(self.current_stock["wood"] - self.current_stock["food"]), abs(agent_B.current_stock["wood"] - agent_B.current_stock["food"]))
+        traded_quantity = minimum_difference/2.0
+        # Sell wood for food
         if self.behaviour == "trade_wood":
-            # Sell wood for food
-            while not (self.tradeFinalized() or agent_B.tradeFinalized()):
-                self.color = PINK
-                agent_B.setColor = PINK
-                self.current_stock["wood"] -= TRADE_QTY
-                agent_B.current_stock["wood"] += TRADE_QTY
-                agent_B.current_stock["food"] -= TRADE_QTY
-                self.current_stock["food"] += TRADE_QTY
-                traded_quantity += TRADE_QTY
+            self.color = PINK
+            agent_B.setColor = PINK
+            self.current_stock["wood"] -= traded_quantity
+            agent_B.current_stock["wood"] += traded_quantity
+            agent_B.current_stock["food"] -= traded_quantity
+            self.current_stock["food"] += traded_quantity
+        # Sell food for wood  
         elif self.behaviour == "trade_food":
-            # Sell food for wood
-            while not (self.tradeFinalized() or agent_B.tradeFinalized()):
-                self.color = PINK
-                agent_B.setColor = PINK
-                self.current_stock["food"] -= TRADE_QTY
-                agent_B.current_stock["food"] += TRADE_QTY
-                agent_B.current_stock["wood"] -= TRADE_QTY
-                self.current_stock["wood"] += TRADE_QTY
-                traded_quantity += TRADE_QTY
+            self.color = PINK
+            agent_B.setColor = PINK
+            self.current_stock["food"] -= traded_quantity
+            agent_B.current_stock["food"] += traded_quantity
+            agent_B.current_stock["wood"] -= traded_quantity
+            self.current_stock["wood"] += traded_quantity
 
         return traded_quantity
 
     def removeClosestNeighbor(self):
         """Removes closest neighbor from list"""
-        self.nearest_neighbors = np.delete(self.nearest_neighbors, 0)
+        self.nearest_neighbors.pop(0)
         
     def findNonMarketSquare(self):
         idx_market_false = np.argwhere(np.invert(self.market))
@@ -191,13 +207,6 @@ class Agent:
                 smallest_distance = distance
                 x_nmp, y_nmp = x_market, y_market
         return x_nmp, y_nmp
-
-    def tradeFinalized(self):
-        # Finalize trade if resource equilibrium is reached (diff < TRADE_QTY)
-        if abs(self.current_stock["wood"] - self.current_stock["food"]) <= TRADE_QTY:
-            self.behaviour = ""
-            self.movement = "random"
-            return True
 
     def addWoodLocation(self, pos):
         if pos not in self.wood_locations:
@@ -282,3 +291,6 @@ class Agent:
     
     def getTresholdNewNeighbours(self):
         return self.treshold_new_neighbours
+    
+    def updateTresholdNewNeighbours(self):
+        self.treshold_new_neighbours -= 1

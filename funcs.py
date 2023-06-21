@@ -110,25 +110,25 @@ def moveAgent(preferred_direction, agent, agents):
     # move agent to preferred direction if possible, otherwise move randomly
     x, y = agent.getPos()
     dx, dy = preferred_direction
+    # check if preffered direction is possible 
     if 0 <= x + dx < GRID_WIDTH and  0 <= y + dy < GRID_HEIGHT:
         new_x = x + dx
         new_y = y + dy
         if cellAvailable(new_x, new_y, agents)[0]:
             agent.move(dx, dy)
-
-    else:
-        found = False # available grid cell found
-        possible_moves = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
-        possible_moves.remove((0,0))
-        while not found and possible_moves:
-            dx,dy = random.choice(possible_moves)
-            possible_moves.remove((dx, dy))
-            if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
-                new_x = x + dx
-                new_y = y + dy
-                if cellAvailable(new_x, new_y, agents)[0]:
-                    agent.move(dx, dy)
-                    found = True
+        else:
+            found = False # available grid cell found
+            possible_moves = [(dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
+            possible_moves.remove((0,0))
+            while not found and possible_moves:
+                dx,dy = random.choice(possible_moves)
+                possible_moves.remove((dx, dy))
+                if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
+                    new_x = x + dx
+                    new_y = y + dy
+                    if cellAvailable(new_x, new_y, agents)[0]:
+                        agent.move(dx, dy)
+                        found = True
 
 def findClosestMarketPos(agent: Agent, market):
     x, y = agent.getPos()
@@ -146,7 +146,7 @@ def in_market(agent: Agent, market):
     x, y = agent.getPos()
     return market[x][y]
 
-def GetSetClosestNeighbor(positions_tree, agent:Agent, k, view_radius):
+def getSetClosestNeighbor(positions_tree, agents, agent:Agent, k, view_radius):
     # Update agent position for the KD-tree
     x, y = agent.getPos()
     
@@ -160,5 +160,8 @@ def GetSetClosestNeighbor(positions_tree, agent:Agent, k, view_radius):
             np.delete(idx, i)
     if len(idx) > 0:
         idx = idx[0]
-        idx = np.delete(idx, np.where(idx == agent.getID()))
-        agent.setNearestNeighbors(idx)
+        neighboring_agents = []
+        for ids in idx:
+            if agent != agents[ids]:
+                neighboring_agents.append(agents[ids])
+        agent.setNearestNeighbors(neighboring_agents)

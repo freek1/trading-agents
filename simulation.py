@@ -153,7 +153,7 @@ def runSimulation(arg):
 
         gather_amount = 1.0
 
-        agent_positions = np.zeros([NUM_AGENTS, 2])
+        agent_positions = []
 
         # Creating agents
         for i in range(NUM_AGENTS):
@@ -168,12 +168,11 @@ def runSimulation(arg):
             agents.append(agent)
 
             # Save agent position for the KD-tree
-            agent_positions[i] = [x, y]
-            # Initialize KDTree
-            positions_tree = KDTree(agent_positions)
-        
-            if AGENT_TYPE == 'pathfind_neighbor':
-                GetSetClosestNeighbor(positions_tree, agent, 6, 20)
+            agent_positions.append([x, y])
+        # Initialize KDTree
+        positions_tree = KDTree(agent_positions)
+                
+        alive_times = np.zeros(NUM_AGENTS)
         
         # Run the simulation
         running = True
@@ -190,11 +189,11 @@ def runSimulation(arg):
 
             # COUNT AVG_RESOURCES of agents for DEBUGGING
             total_wood = 0.0
-
+            
             # Update the agents
-            for agent in agents:
+            for i, agent in enumerate(agents):
                 if agent.isAlive():   
-                    agent.updateBehaviour()
+                    agent.updateBehaviour(positions_tree, agent_positions, agents, 6, 20)
                     total_wood += agent.getCurrentStock('wood')
                     nr_agents += 1
                     agent.update_time_alive()
@@ -204,12 +203,6 @@ def runSimulation(arg):
 
                     # Do agent behaviour
                     if TRADING:
-                        if AGENT_TYPE == "pathfind_neighbor" and len(agent.nearest_neighbors)>0:
-                            if agent.treshold_new_neighbours>0:
-                                agent.treshold_new_neighbours -= 1
-                            elif agent.treshold_new_neighbours==0:
-                                GetSetClosestNeighbor(positions_tree, agent, 6, 20)
-                            
                         if (
                             agent.getBehaviour() == "trade_wood"
                             or agent.getBehaviour() == "trade_food"
@@ -231,13 +224,12 @@ def runSimulation(arg):
                                     if agent_B is None:
                                         continue
                                     if agent.compatible(agent_B):
-                                        traded_qty = agent.trade(agent_B)
+                                        trade_qty = agent.trade(agent_B)
                                         traded = True
-                                    else:
-                                        # If not compatible, find next nearest neighbor
-                                        if AGENT_TYPE == "pathfind_neighbor" and len(agent.nearest_neighbors)>0:
-                                            if np.all(agent_positions[agent.getNearestNeigbors()[0]] == [x_check, y_check]):
-                                                agent.removeClosestNeighbor()
+                                    # If not compatible, find next nearest neighbor
+                                    elif AGENT_TYPE == "pathfind_neighbor" and len(agent.nearest_neighbors)>0:
+                                        if agent.getNearestNeigbors()[0].getPos() == agent_B.getPos():
+                                            agent.removeClosestNeighbor()
 
                         elif (
                             agent.getBehaviour() == "trade_wood"
@@ -250,36 +242,22 @@ def runSimulation(arg):
                                     (dx, dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]
                                 ]
                                 neighboring_cells.remove((0, 0))
-
                                 while not traded and bool(neighboring_cells):
                                     dx, dy = random.choice(neighboring_cells)
                                     neighboring_cells.remove((dx, dy))
-                                    if (
-                                        0 <= x + dx < GRID_WIDTH
-                                        and 0 <= y + dy < GRID_HEIGHT
-                                        and [x + dx, y + dy] in market_idx
-                                    ):
-                                        x_check = agent.getPos()[0] + dx
-                                        y_check = agent.getPos()[1] + dy
-                                        occupied, agent_B = cellAvailable(
-                                            x_check, y_check, agents
-                                        )
-                                        if agent_B is None:
-                                            continue
-                                        if agent.compatible(agent_B):
-                                            # print(f"TRADE at {agent.getPos()} at pos={agent_B.getPos()}")
-                                            # print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
-                                            # print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
-                                            traded_qty = agent.trade(agent_B)
-                                            agent.updateBehaviour()
-                                            agent_B.updateBehaviour()
-                                            # print(f"  Qty traded: {traded_qty}")
-                                            # print(f"  Agent {agent.getID()} = {agent.current_stock}, {agent.behaviour}")
-                                            # print(f"  Agent {agent_B.getID()} = {agent_B.current_stock}, {agent_B.behaviour}")
-                                            traded = True
-
-                                if traded:
-                                    agent.set_movement = "random"
+                                    x_check = agent.getPos()[0] + dx
+                                    y_check = agent.getPos()[1] + dy
+                                    occupied, agent_B = cellAvailable(
+                                        x_check, y_check, agents
+                                    )
+                                    if agent_B is None:
+                                        continue
+                                    if agent.compatible(agent_B):
+                                        trade_qty = agent.trade(agent_B)
+                                        traded = True
+                                    
+                    if len(agent.nearest_neighbors)==0 and agent.treshold_new_neighbours>0:
+                        agent.updateTresholdNewNeighbours()
 
                     # Update the resource gathering
                     chosen_resource = choose_resource(
@@ -288,14 +266,11 @@ def runSimulation(arg):
                     # if able_to_take_resource(agent, chosen_resource, resources):
                     take_resource(agent, chosen_resource, resources, gather_amount)
 
-                    # Upkeep of agents and check if agent can survive
-                    agent.upkeep()
-
                     # closest distance to market
                     agent.setClosestMarketPos(findClosestMarketPos(agent, market))
 
-                    # # Choose behaviour
-                    # agent.updateBehaviour() # Agent brain
+                    # Choose behaviour
+                    agent.updateBehaviour(positions_tree, agent_positions, agents, 6, 20) # To prevent two trades in same timestep (initialized by other agent)
 
                     # closest distance to market
                     agent.setClosestMarketPos(findClosestMarketPos(agent, market))
@@ -312,9 +287,25 @@ def runSimulation(arg):
                     # closest distance to market
                     agent.setClosestMarketPos(findClosestMarketPos(agent, market))
                     
-                    agent_positions[agent.getID()] = agent.getPos()
-                    # Updating KD-tree
-                    positions_tree = KDTree(agent_positions)
+                    agent_positions[i] = agent.getPos()    
+            
+            death_agents = []
+            # Upkeep of agents and check if agent can survive
+            for agent in agents:
+                agent.upkeep()
+                
+                # If agent died, then remove from list and save death time
+                if not agent.isAlive():
+                    death_agents.append(agent)
+                    alive_times[agent.id] = time
+
+            for death_agent in death_agents:
+                agents.remove(death_agent)
+                agent_positions.remove(death_agent.getPos())
+            
+            if len(agent_positions)>0:
+                # Updating KD-tree
+                positions_tree = KDTree(agent_positions)  
 
             # if nr_agents:
             #     avg_wood = total_wood / nr_agents
@@ -498,66 +489,69 @@ def runSimulation(arg):
         
     except Exception as e:
         traceback.print_exc()
+        
+run_time_str = datetime.now().strftime("%Y%m%d_%H%M%S") # current date and time
+arg = 100, 'Baseline', 'pathfind_neighbor', 1, 'Sides', True, False, 1, run_time_str, True 
+runSimulation(arg)
+# if __name__ == "__main__":
+#     run_time_str = datetime.now().strftime("%Y%m%d_%H%M%S") # current date and time
 
-if __name__ == "__main__":
-    run_time_str = datetime.now().strftime("%Y%m%d_%H%M%S") # current date and time
+#     print("CPUs available: ", multiprocessing.cpu_count())
 
-    print("CPUs available: ", multiprocessing.cpu_count())
-
-    SAVE_TO_FILE = True
-    if not os.path.exists(f"outputs/{run_time_str}") and SAVE_TO_FILE:
-        os.makedirs(f"outputs/{run_time_str}")
-
-
-    distributions = ['Uniform', 'Sides', 'RandomGrid'] #["Uniform", "Sides", "RandomGrid"]
-    num_agents_list = [50, 100, 200, 300]
-    move_probabilities = [0.5, 0.8, 1]
-    trading = [True, False]
-    scenarios = ["Baseline", "Market"]
-    agent_types = ["random", "pathfind_neighbor", "pathfind_market"]
+#     SAVE_TO_FILE = True
+#     if not os.path.exists(f"outputs/{run_time_str}") and SAVE_TO_FILE:
+#         os.makedirs(f"outputs/{run_time_str}")
 
 
-    scenarios_without_trading = "Baseline"
-    agents_without_trading = "random"
-    agent_types_with_trading_with_market = "pathfind_market"
-    agent_types_with_trading_without_market = ["random", "pathfind_neighbor"]
+#     distributions = ['Uniform', 'Sides', 'RandomGrid'] #["Uniform", "Sides", "RandomGrid"]
+#     num_agents_list = [50, 100, 200, 300]
+#     move_probabilities = [0.5, 0.8, 1]
+#     trading = [True, False]
+#     scenarios = ["Baseline", "Market"]
+#     agent_types = ["random", "pathfind_neighbor", "pathfind_market"]
 
-    processes = []
 
-    pool = multiprocessing.Pool()
+#     scenarios_without_trading = "Baseline"
+#     agents_without_trading = "random"
+#     agent_types_with_trading_with_market = "pathfind_market"
+#     agent_types_with_trading_without_market = ["random", "pathfind_neighbor"]
 
-    test_run = 0
-    if test_run:
-        ENABLE_RENDERING = 1
-        SAVE_TO_FILE = 0
-        tasks = []
-        for i in range(1):
-            tasks.append((50,'Baseline','random',1,'RandomGrid',True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
-        pool.map_async(runSimulation, tasks)
-        pool.close()
-        pool.join()
+#     processes = []
 
-    else:
-        tasks = []
-        for RUN_NR in [1,2,3,4,5]:
-            for DISTRIBUTION in distributions:
-                for NUM_AGENTS in num_agents_list:
-                    for MOVE_PROB in move_probabilities:
-                        for TRADING in trading:
-                            if not TRADING:
-                                SCENARIO = scenarios_without_trading
-                                AGENT_TYPE = agents_without_trading
-                                tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
-                            else:
-                                for SCENARIO in scenarios:
-                                    if SCENARIO == "Market":
-                                        AGENT_TYPE = agent_types_with_trading_with_market
-                                        tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
-                                    else:
-                                        for AGENT_TYPE in agent_types_with_trading_without_market:
-                                            tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
-        # Run parallel
-        pool.map_async(runSimulation, tasks)
-        # Close 
-        pool.close()
-        pool.join()
+#     pool = multiprocessing.Pool()
+
+#     test_run = 0
+#     if test_run:
+#         ENABLE_RENDERING = 1
+#         SAVE_TO_FILE = 0
+#         tasks = []
+#         for i in range(1):
+#             tasks.append((50,'Baseline','random',1,'RandomGrid',True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
+#         pool.map_async(runSimulation, tasks)
+#         pool.close()
+#         pool.join()
+
+#     else:
+#         tasks = []
+#         for RUN_NR in [1,2,3,4,5]:
+#             for DISTRIBUTION in distributions:
+#                 for NUM_AGENTS in num_agents_list:
+#                     for MOVE_PROB in move_probabilities:
+#                         for TRADING in trading:
+#                             if not TRADING:
+#                                 SCENARIO = scenarios_without_trading
+#                                 AGENT_TYPE = agents_without_trading
+#                                 tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
+#                             else:
+#                                 for SCENARIO in scenarios:
+#                                     if SCENARIO == "Market":
+#                                         AGENT_TYPE = agent_types_with_trading_with_market
+#                                         tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
+#                                     else:
+#                                         for AGENT_TYPE in agent_types_with_trading_without_market:
+#                                             tasks.append((NUM_AGENTS, SCENARIO, AGENT_TYPE, MOVE_PROB, DISTRIBUTION, TRADING, SAVE_TO_FILE, RUN_NR, run_time_str, False))
+#         # Run parallel
+#         pool.map_async(runSimulation, tasks)
+#         # Close 
+#         pool.close()
+#         pool.join()
