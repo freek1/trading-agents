@@ -51,8 +51,10 @@ if kaplan_plots:
         for i, file_path in enumerate(files):
             data = pd.read_csv(file_path)
             datakf = data[list('TE')]
+            
             datakf_copy = datakf.copy()
             datakf_copy.loc[datakf_copy['T'] == 1000, 'E'] = 0 # post hoc fix if accidentally the last timestep is used as time of death
+            
             mean_survival_plots = pd.concat([mean_survival_plots, datakf_copy])
         
         kmf = KaplanMeierFitter(label=group_key)
