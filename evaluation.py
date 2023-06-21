@@ -207,7 +207,6 @@ if kaplan_plots:
 
 
 # CPH blobs
-cox_analysis_blobs = True
 if cox_analysis_blobs:
     combined_df = pd.concat([cphs['Baseline-no_trade-RandomGrid-50-0.8'],
                              cphs['Baseline-random-RandomGrid-50-0.8'],
@@ -261,8 +260,6 @@ if cox_analysis_blobs:
     plt.savefig(f"imgs/{date_time_str}/results-trading-randomblobs.pdf")
 
 # CPH sides
-cox_analysis_sides = True
-
 if cox_analysis_sides:
     combined_df = pd.concat([cphs[f'Baseline-no_trade-Sides-50-1'],
                              cphs[f'Baseline-random-Sides-50-1'],
@@ -318,8 +315,7 @@ if cox_analysis_sides:
     plt.tight_layout()
     plt.savefig(f"imgs/{date_time_str}/results-trading-sides.pdf")
     
-
-cox_analysis_nr_agents_sides = True
+# Cox analysis sides nr agents
 if cox_analysis_nr_agents_sides:
     nagentsss = [50, 100, 200, 300]
 
@@ -382,7 +378,6 @@ if cox_analysis_nr_agents_sides:
 
 
 # Cox analysis UNIFORM
-cox_analysis_uniform = True
 if cox_analysis_uniform:
     
     combined_df = pd.concat([cphs[f'Baseline-no_trade-Uniform-300-0.8'],
@@ -438,7 +433,6 @@ if cox_analysis_uniform:
 
 
 # Cox analysis for ALL DATA
-cox_analysis_alldata = True
 if cox_analysis_alldata:
     # Analysis
     def concatAllRuns(data_path: Path):
