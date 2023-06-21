@@ -36,9 +36,10 @@ def runSimulation(arg):
             pygame.init()
             screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-        fps = 144
+        fps = 20
         clock = pygame.time.Clock()
         time = 1
+        DURATION = 1000
 
         # Define some colors
         BLACK = (0, 0, 0)
@@ -417,7 +418,7 @@ def runSimulation(arg):
                 print("No agents left, ending simulation")
                 running = False
 
-            if time > 1000:
+            if time > DURATION:
                 print('Time up, ending sim')
                 running = False
         #print("LINE 422")
@@ -429,8 +430,16 @@ def runSimulation(arg):
             for agent in agents:
                 alive_times[agent.id] = agent.time_alive
 
-            # only record deaths, kaplan meier and cox model both can deal with this
-            events = np.ones(len(alive_times))
+            # List of when agents died
+            events = np.zeros([NUM_AGENTS])
+            for i, ev in enumerate(alive_times):
+                # If agent died before the final timestep (otherwise it was still alive at the end)
+                ev = int(ev)
+                if ev < DURATION:
+                    events[i] = 1
+                else:
+                    events[i] = 0
+
 
             # Saving data to file
             file_path = f"outputs/{run_time}/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}-{MOVE_PROB}-{RUN_NR}.csv"
@@ -468,12 +477,13 @@ def runSimulation(arg):
 
 if __name__ == "__main__":
     run_time_str = datetime.now().strftime("%Y%m%d_%H%M%S") # current date and time
-    if not os.path.exists(f"outputs/{run_time_str}"):
-        os.makedirs(f"outputs/{run_time_str}")
 
     print("CPUs available: ", multiprocessing.cpu_count())
 
     SAVE_TO_FILE = True
+    if not os.path.exists(f"outputs/{run_time_str}") and SAVE_TO_FILE:
+        os.makedirs(f"outputs/{run_time_str}")
+
 
     distributions = ['Uniform','RandomGrid'] #["Uniform", "Sides", "RandomGrid"]
     num_agents_list = [50, 100, 200, 300]
@@ -492,14 +502,13 @@ if __name__ == "__main__":
 
     pool = multiprocessing.Pool()
 
-    test_run = True
-
+    test_run = 0
     if test_run:
         ENABLE_RENDERING = 1
         SAVE_TO_FILE = 0
         tasks = []
         for i in range(1):
-            tasks.append((50,"Baseline",'random',0.8,"RandomGrid",True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
+            tasks.append((50,'Baseline','random',1,'RandomGrid',True,SAVE_TO_FILE,i,run_time_str,ENABLE_RENDERING))
         pool.map_async(runSimulation, tasks)
         pool.close()
         pool.join()
