@@ -14,7 +14,7 @@ We will take aspects from both works by investigating the effects of different t
 We will show by means of experimentation the benefit that different trading behaviors can have on an artificial society by the survival rates in different environmental conditions.
 
 Research questions:
-- How is the survival rate of a pre-historic society affected by the ability to trade?
+- How is the survival rate of a simulated pre-historic society affected by the ability to trade?
 - How do different trading mechanisms and a centralized marketplace affect the survival rate?
 
 ## Research
