@@ -9,11 +9,11 @@ from pathlib import Path
 
 # If you want to run the cox analyses, you need to have kaplan_plots = True, as it generates the data.
 kaplan_plots = True
-cox_analysis_blobs = True
-cox_analysis_sides = True
-cox_analysis_uniform = True
-cox_analysis_nr_agents_sides = True
-cox_analysis_alldata = True
+cox_analysis_blobs = False
+cox_analysis_sides = False
+cox_analysis_uniform = False
+cox_analysis_nr_agents_sides = False
+cox_analysis_alldata = False
 
 # Set this to the newest generated data datetime.
 date_time_str = '20230621_173711'
@@ -27,8 +27,8 @@ if kaplan_plots:
     if not os.path.exists(f"imgs/{date_time_str}"):
         os.makedirs(f"imgs/{date_time_str}")
 
-    if not os.path.exists(f"output/{date_time_str}/results"):
-        os.makedirs(f"imgs/{date_time_str}/results")
+    if not os.path.exists(f"outputs/{date_time_str}/results"):
+        os.makedirs(f"outputs/{date_time_str}/results")
 
     # Group runs by experiment
     grouped_files = {}
@@ -73,14 +73,14 @@ if kaplan_plots:
 
         kmfs[group_key] = kmf.fit(mean_survival_plots["T"], mean_survival_plots['E']) # Deze line geeft die warnings, maar kon het niet oplossen nog
 
-    # Effect of trading UNIFORM single figure
+    # Effect of trading RANDOM single figure
     fig = plt.figure()
     kmfs[f'Baseline-no_trade-RandomGrid-50-0.8'].plot(label='Non-trading')
     kmfs[f'Baseline-random-RandomGrid-50-0.8'].plot(label='Random-trading')
     kmfs[f'Baseline-pathfind_neighbor-RandomGrid-50-0.8'].plot(label='Search-trading')
     kmfs[f'Market-pathfind_market-RandomGrid-50-0.8'].plot(label='Market-trading')
     plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
-    plt.title('Effect of trading. Sides, Nr agents = 50, prob. = 0.8', fontsize=14)
+    plt.title('Effect of trading. Random Blobs, Nr agents = 50, prob. = 0.8', fontsize=14)
     plt.xlabel("Time steps", fontsize=14)
     plt.ylabel("Survival probability", fontsize=14)
     plt.savefig(f"imgs/{date_time_str}/kms-comparison-trading-randomblobs.pdf")
@@ -106,7 +106,7 @@ if kaplan_plots:
     kmfs[f'Baseline-pathfind_neighbor-Uniform-300-0.8'].plot(label='Search-trading')
     kmfs[f'Market-pathfind_market-Uniform-300-0.8'].plot(label='Market-trading')
     plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
-    plt.title('Effect of trading. Unform, Nr agents = 300, prob. = 0.8', fontsize=14)
+    plt.title('Effect of trading. Uniform, Nr agents = 300, prob. = 0.8', fontsize=14)
     plt.xlabel("Time steps", fontsize=14)
     plt.ylabel("Survival probability", fontsize=14)
     plt.savefig(f"imgs/{date_time_str}/kms-comparison-trading-uniform.pdf")
@@ -139,7 +139,7 @@ if kaplan_plots:
                     dist_name = 'Random Blobs'
                 else:
                     dist_name = dist
-                plt.title(f'{dist_name}, nr_agents = {nr_agent}, prob. = {prob}', fontsize=12)
+                plt.title(f'{dist_name}, nr_agents = {nr_agent}, prob. = {prob}', fontsize=10)
                 ax = kmfs[f'Baseline-no_trade-{dist}-{nr_agent}-{prob}'].plot(label='Non-trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
                 ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-{prob}'].plot(label='Random-trading', legend=None, linewidth=1)
@@ -185,7 +185,7 @@ if kaplan_plots:
                     dist_name = 'Random Blobs'
                 else:
                     dist_name = dist
-                plt.title(f'{dist_name}, nr_agents = {nr_agent}, prob. = {prob}', fontsize=12)
+                plt.title(f'{dist_name}, nr_agents = {nr_agent}, prob. = {prob}', fontsize=10)
                 ax = kmfs[f'Baseline-no_trade-{dist}-{nr_agent}-{prob}'].plot(label='Non-trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
                 ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-{prob}'].plot(label='Random-trading', legend=None, linewidth=1)
