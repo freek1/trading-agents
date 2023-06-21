@@ -169,7 +169,7 @@ def runSimulation(arg):
         # Initialize KDTree
         positions_tree = KDTree(agent_positions)
                 
-        alive_times = np.zeros(NUM_AGENTS)
+        alive_times = np.zeros([NUM_AGENTS])
         
         # Run the simulation
         running = True
@@ -411,17 +411,12 @@ def runSimulation(arg):
         
         if SAVE_TO_FILE:
             print(" Save results...")
-            # Time alive of agents distribution
-            alive_times = np.zeros(NUM_AGENTS)
-            for agent in agents:
-                alive_times[agent.id] = agent.time_alive
-
             # List of when agents died
             events = np.zeros([NUM_AGENTS])
             for i, ev in enumerate(alive_times):
                 # If agent died before the final timestep (otherwise it was still alive at the end)
                 ev = int(ev)
-                if ev < DURATION:
+                if ev < DURATION and ev > 0:
                     events[i] = 1
                 else:
                     events[i] = 0
@@ -527,7 +522,7 @@ if __name__ == "__main__":
 
     else:
         tasks = []
-        for RUN_NR in [1,2,3,4,5]:
+        for RUN_NR in [1]:
             for DISTRIBUTION in distributions:
                 for NUM_AGENTS in num_agents_list:
                     for MOVE_PROB in move_probabilities:
