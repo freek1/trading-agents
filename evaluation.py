@@ -116,13 +116,13 @@ if kaplan_plots:
                     ax = plt.subplot(12, 3, i, sharex=ax, sharey=ax)
 
                 plt.title(f'{dist}, nr_agents = {nr_agent}, prob. = {prob}', fontsize=10)
-                ax = kmfs[f'Baseline-no_trade-{dist}-{nr_agent}-{prob}'].plot(label='No market, no trading', legend=None, linewidth=1)
+                ax = kmfs[f'Baseline-no_trade-{dist}-{nr_agent}-{prob}'].plot(label='Non-Trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-{prob}'].plot(label='No market, random', legend=None, linewidth=1)
+                ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-{prob}'].plot(label='Random-trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-{prob}'].plot(label='No market, neighbor', legend=None, linewidth=1)
+                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-{prob}'].plot(label='Search-trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Market-pathfind_market-{dist}-{nr_agent}-{prob}'].plot(label='Market', legend=None, linewidth=1)
+                ax = kmfs[f'Market-pathfind_market-{dist}-{nr_agent}-{prob}'].plot(label='Market-trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
     
     handles, labels = ax.get_legend_handles_labels()
