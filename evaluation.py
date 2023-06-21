@@ -14,6 +14,7 @@ cox_analysis = False
 date_time_str = '20230619_192815'
 data_path = Path(os.getcwd())
 
+
 if kaplan_plots:
     kmf = KaplanMeierFitter()
 
@@ -50,8 +51,10 @@ if kaplan_plots:
         for i, file_path in enumerate(files):
             data = pd.read_csv(file_path)
             datakf = data[list('TE')]
-            mean_survival_plots = pd.concat([mean_survival_plots, datakf])
-
+            datakf_copy = datakf.copy()
+            datakf_copy.loc[datakf_copy['T'] == 1000, 'E'] = 0 # post hoc fix if accidentally the last timestep is used as time of death
+            mean_survival_plots = pd.concat([mean_survival_plots, datakf_copy])
+        
         kmf = KaplanMeierFitter(label=group_key)
 
         kmfs[group_key] = kmf.fit(mean_survival_plots["T"], mean_survival_plots['E']) # Deze line geeft die warnings, maar kon het niet oplossen nog
@@ -106,9 +109,9 @@ if kaplan_plots:
                 i+=1
 
                 if i == 1:
-                    ax = plt.subplot(6, 3, i)
+                    ax = plt.subplot(12, 3, i)
                 else:
-                    ax = plt.subplot(6, 3, i, sharex=ax, sharey=ax)
+                    ax = plt.subplot(12, 3, i, sharex=ax, sharey=ax)
 
                 plt.title(f'{dist}, nr_agents = {nr_agent}, prob. = {prob}', fontsize=10)
                 ax = kmfs[f'Baseline-no_trade-{dist}-{nr_agent}-{prob}'].plot(label='No market, no trading', legend=None, linewidth=1)

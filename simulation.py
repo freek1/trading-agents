@@ -39,6 +39,7 @@ def runSimulation(arg):
         fps = 20
         clock = pygame.time.Clock()
         time = 1
+        DURATION = 1000
 
         # Define some colors
         BLACK = (0, 0, 0)
@@ -417,7 +418,7 @@ def runSimulation(arg):
                 print("No agents left, ending simulation")
                 running = False
 
-            if time > 1000:
+            if time > DURATION:
                 print('Time up, ending sim')
                 running = False
         #print("LINE 422")
@@ -429,8 +430,16 @@ def runSimulation(arg):
             for agent in agents:
                 alive_times[agent.id] = agent.time_alive
 
-            # only record deaths, kaplan meier and cox model both can deal with this
-            events = np.ones(len(alive_times))
+            # List of when agents died
+            events = np.zeros([NUM_AGENTS])
+            for i, ev in enumerate(alive_times):
+                # If agent died before the final timestep (otherwise it was still alive at the end)
+                ev = int(ev)
+                if ev < DURATION:
+                    events[i] = 1
+                else:
+                    events[i] = 0
+
 
             # Saving data to file
             file_path = f"outputs/{run_time}/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}-{MOVE_PROB}-{RUN_NR}.csv"
@@ -475,6 +484,7 @@ if __name__ == "__main__":
     if not os.path.exists(f"outputs/{run_time_str}") and SAVE_TO_FILE:
         os.makedirs(f"outputs/{run_time_str}")
 
+
     distributions = ['Uniform','RandomGrid'] #["Uniform", "Sides", "RandomGrid"]
     num_agents_list = [50, 100, 200, 300]
     move_probabilities = [0.5, 0.8, 1]
@@ -492,7 +502,7 @@ if __name__ == "__main__":
 
     pool = multiprocessing.Pool()
 
-    test_run = 1
+    test_run = 0
     if test_run:
         ENABLE_RENDERING = 1
         SAVE_TO_FILE = 0
