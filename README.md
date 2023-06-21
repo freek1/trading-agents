@@ -16,10 +16,13 @@ as the number of agents and changes in the behaviour on trading volume and speci
 level of resource production specialization within the population?
 
 ## Research
-#### Measurement: 
-Kaplan-Meier survival distribution graph (KM-graph).
+#### Gifs: 
+Some gifs of the simulations
 
-![Example Kaplan-Meier survival graph](imgs/km-Baseline-random-RandomGrid-200-True-1.png)
+![random-sides gif](imgs/random-sides.gif)
+![random-sides gif](imgs/random-sides.gif)
+![random-sides gif](imgs/random-sides.gif)
+![random-sides gif](imgs/random-sides.gif)
 
 #### Situations: 
 | Situations | Description |
