@@ -1,19 +1,21 @@
 # Natural Computing Project
 ## Trading behaviour simulation
 
-In a simulated environment of simple agents, we will examine the impact of transaction costs (TC) on
-trading volume and the level of specialization among individual agents. These agents live in a world
-where they both produce and consume resources necessary for survival, and they have the ability
-to specialize to boost production of specific resources. Our model will be a simplified simulation of
-trade and specialization behaviour for production. It could serve as a starting point for more complex
-economic simulations to investigate the impact of policy interventions or changes in the underlying
-mechanisms on trading volume. If time allows, we can look at the effects of additional variables, such
-as the number of agents and changes in the behaviour on trading volume and specialization.
+Organisms require a continuous supply of resources to survive. These resources need to be continuously replenished in the environment that these agents occupy, or else the population will starve to death. Many simply organisms constantly search for just food, and have nothing to gain from exchanging one resource type for another with fellow agents.
 
-1. Can trading behaviour emerge using relatively simple decision rules in agents?
-2. What is the effect of transaction cost on trading behaviour, measured in trading volume?
-3. (Optional, if we do not make specialization fixed:) What is the effect of transaction cost on the
-level of resource production specialization within the population?
+Human societies have evolved to produce and utilize different varieties of resources to aid in their survival through specialisation and uniqueness in traits and desires, but this comes with a problem. Our environment does not offer each desired resource in equal amounts at every place. Some resources are abundant in one location and completely lacking in another. The spatial organisation of humans and limited movement capabilities, along with the constantly changing needs and environment, lead to uneven distributions of wealth. As a result, humans developed a behaviour of trade, where a person sells goods that they own in abundance for goods that are are strongly desired but lacking with someone that has opposing resource in their disposal.
+
+Studying how trading behaviour affects our population through controlled experiments is near-impossible to do. Epstein & Axtell (1996) [1] demonstrated the ability to do controlled experiments in artificial societies using textit{agent-based computer modeling. Although these simulations are necessarily abstractions of real-world societies, they allow for extensive experimentation with rule-based behaviours for studying emergent societal properties. In their book, they describe experiments with agents on a 2D grid, harvesting and consuming resources needed for survival. They show that different rule-based agent behaviours lead to changes in macroscopic societal properties. Among other behaviours, they looked at rules leading to trading behaviour, and the impact on societal patterns and statistics.
+
+Wilhite (2001) [2] studied the effect of trading using several different network structures, as opposed to a 2D network where distances between agents and resources exist which have to be traversed. Their work investigated how different trade networks affect wealth distribution, and found there exists an optimal hybrid network organization between a heavily globalized market and a restricted localized market, where some agents trade globally, and most agents trade locally.
+
+We will take aspects from both works by investigating the effects of different trading behaviours in a 2D grid world with resource and agent dynamics very similar to the experiments of Epstein \& Axtell. We focus on a bartering system, a simple form of trade where no money or other intermediate payment system is involved and at least two different kind of goods are exchanged. This method of exchange was practiced before money or a common intermediate exchange medium was used. An example of a bartering system in a centralized marketplace that still takes place today is investigated by Nyoko et al. (2022) [3].
+
+We will show by means of experimentation the benefit that different trading behaviors can have on an artificial society by the survival rates in different environmental conditions.
+
+Research questions:
+- How is the survival rate of a pre-historic society affected by the ability to trade?
+- How do different trading mechanisms and a centralized marketplace affect the survival rate?
 
 ## Research
 #### Gifs: 
@@ -55,3 +57,14 @@ The function `runSimulation()` is used to run the simulation. It requires the fo
 - `RUN_NR`: (int) Specifies which run it is (only useful when calculating the mean over multiple runs).
 - `run_time`: (str) Used as the folder name in which the run is saved.
 - `ENABLE_RENDERING`: (boolean) Whether the run is displayed on the screen.
+
+Running `simulation.py` generates data in `outputs/your_datetime`. These data are used in `evaluation.py`, where the data are processed and the figures are generated and analyses are run. The figures are saved in `imgs/your_datetime` and the analysis results are saved in `outputs/your_datetime/results`.
+
+
+## Sources
+[1] J. M. Epstein and R. Axtell, Growing artificial societies: social science from the bottom up.
+Brookings Institution Press, 1996
+[2] A. Wilhite, “Bilateral trade and ‘small-world’networks,” Computational economics, vol. 18, pp. 49–
+64, 2001
+[3] A. E. Nyoko, R. P. Fanggidae, and M. Ose, “The study of the barter trading system at wulandoni
+barter market,” EAI, Jul. 2022. doi: 10.4108/eai.25-11-2021.2319357.
