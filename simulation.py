@@ -173,7 +173,7 @@ def runSimulation(arg):
             positions_tree = KDTree(agent_positions)
         
             if AGENT_TYPE == 'pathfind_neighbor':
-                GetSetClosestNeighbor(positions_tree, agent, 5, 20)
+                GetSetClosestNeighbor(positions_tree, agent, 6, 20)
         
         # Run the simulation
         running = True
@@ -204,12 +204,11 @@ def runSimulation(arg):
 
                     # Do agent behaviour
                     if TRADING:
-                        
                         if AGENT_TYPE == "pathfind_neighbor" and len(agent.nearest_neighbors)>0:
                             if agent.treshold_new_neighbours>0:
                                 agent.treshold_new_neighbours -= 1
                             elif agent.treshold_new_neighbours==0:
-                                GetSetClosestNeighbor(positions_tree, agent, 5, 20)
+                                GetSetClosestNeighbor(positions_tree, agent, 6, 20)
                             
                         if (
                             agent.getBehaviour() == "trade_wood"
@@ -439,34 +438,61 @@ def runSimulation(arg):
                 else:
                     events[i] = 0
 
+            if AGENT_TYPE == 'random' and TRADING == False:
+                # Saving data to file
+                file_path = f"outputs/{run_time}/{SCENARIO}-{'no_trade'}-{DISTRIBUTION}-{NUM_AGENTS}-{MOVE_PROB}-{RUN_NR}.csv"
+                if not os.path.exists(file_path):
+                    empty = pd.DataFrame({"ignore": [0] * time})
+                    empty.to_csv(file_path, index=False)
 
-            # Saving data to file
-            file_path = f"outputs/{run_time}/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{TRADING}-{MOVE_PROB}-{RUN_NR}.csv"
+                data = pd.read_csv(file_path)
 
-            if not os.path.exists(file_path):
-                empty = pd.DataFrame({"ignore": [0] * time})
-                empty.to_csv(file_path, index=False)
+                data = pd.DataFrame(
+                    {
+                        "T": alive_times,
+                        "E": events,
+                        "Scenario": SCENARIO,
+                        "Agent_type": 'no_trade',
+                        "Distribution": DISTRIBUTION,
+                        "Num_agents": NUM_AGENTS,
+                        "Trading": TRADING,
+                        "Move_prob": MOVE_PROB,
+                        "Run_number": RUN_NR,
+                    }
+                )
+                # Assign the adjusted events and alive_times to DataFrame columns
+                try:
+                    data.to_csv(file_path, index=False)
+                except Exception:
+                    traceback.print_exc()
+            else:
+                file_path = f"outputs/{run_time}/{SCENARIO}-{AGENT_TYPE}-{DISTRIBUTION}-{NUM_AGENTS}-{MOVE_PROB}-{RUN_NR}.csv"
+                if not os.path.exists(file_path):
+                    empty = pd.DataFrame({"ignore": [0] * time})
+                    empty.to_csv(file_path, index=False)
 
-            data = pd.read_csv(file_path)
+                data = pd.read_csv(file_path)
 
-            data = pd.DataFrame(
-                {
-                    "T": alive_times,
-                    "E": events,
-                    "Scenario": SCENARIO,
-                    "Agent_type": AGENT_TYPE,
-                    "Distribution": DISTRIBUTION,
-                    "Num_agents": NUM_AGENTS,
-                    "Trading": TRADING,
-                    "Move_prob": MOVE_PROB,
-                    "Run_number": RUN_NR,
-                }
-            )
-            # Assign the adjusted events and alive_times to DataFrame columns
-            try:
-                data.to_csv(file_path, index=False)
-            except Exception:
-                traceback.print_exc()
+                data = pd.DataFrame(
+                    {
+                        "T": alive_times,
+                        "E": events,
+                        "Scenario": SCENARIO,
+                        "Agent_type": AGENT_TYPE,
+                        "Distribution": DISTRIBUTION,
+                        "Num_agents": NUM_AGENTS,
+                        "Trading": TRADING,
+                        "Move_prob": MOVE_PROB,
+                        "Run_number": RUN_NR,
+                    }
+                )
+                # Assign the adjusted events and alive_times to DataFrame columns
+                try:
+                    data.to_csv(file_path, index=False)
+                except Exception:
+                    traceback.print_exc()
+            
+
 
         pygame.quit()
         
