@@ -475,7 +475,7 @@ def runSimulation(arg):
 
                 data = pd.DataFrame(
                     {
-                        "T": alive_times,
+                        "T": alive_times,   
                         "E": events,
                         "Scenario": SCENARIO,
                         "Agent_type": AGENT_TYPE,

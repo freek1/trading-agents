@@ -37,3 +37,18 @@ All situations are tested on three resource distributions:
 
 #### Analysis: 
 Cox Proportional-Hazards model (also gives hazard ratio).
+
+## Usage of simulation
+
+The function `runSimulation()` is used to run the simulation. It requires the following arguments in its `args` parameter:
+
+- `NUM_AGENTS`: (int) Total number of agents that are simulated.
+- `SCENARIO`: (str) "Baseline" or "Market". Specifies whether a market is simulated.
+- `AGENT_TYPE`: (str) "random" or "pathfind_neighbor" or "pathfind_market". Specifies whether the agent moves randomly all the time or it can pathfind either neighbors or to a market place.
+- `MOVE_PROB`: (float) Probability of an agent making a move.
+- `DISTRIBUTION`: (str) "Uniform" or "Sides" or "RandomGrid". Specifies which environment is used.
+- `TRADING`: (boolean) Specifies whether agents are able to trade.
+- `SAVE_TO_FILE`: (boolean) Whether to save the run as a CSV file.
+- `RUN_NR`: (int) Specifies which run it is (only useful when calculating the mean over multiple runs).
+- `run_time`: (str) Used as the folder name in which the run is saved.
+- `ENABLE_RENDERING`: (boolean) Whether the run is displayed on the screen.
