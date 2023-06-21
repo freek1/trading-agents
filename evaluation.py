@@ -6,8 +6,8 @@ import pandas as pd
 import os
 import glob
 from pathlib import Path
-import seaborn as sns
 
+# If you want to run the cox analyses, you need to have kaplan_plots = True, as it generates the data
 kaplan_plots = True
 cox_analysis_blobs = True
 cox_analysis_sides = True
@@ -141,7 +141,7 @@ if kaplan_plots:
                 ax.xaxis.set_label_text('')
                 ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-{prob}'].plot(label='Random-trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-{prob}'].plot(label='Neighbor-trading', legend=None, linewidth=1)
+                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-{prob}'].plot(label='Search-trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
                 ax = kmfs[f'Market-pathfind_market-{dist}-{nr_agent}-{prob}'].plot(label='Market-trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
@@ -187,7 +187,7 @@ if kaplan_plots:
                 ax.xaxis.set_label_text('')
                 ax = kmfs[f'Baseline-random-{dist}-{nr_agent}-{prob}'].plot(label='Random-trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
-                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-{prob}'].plot(label='Neighbor-trading', legend=None, linewidth=1)
+                ax = kmfs[f'Baseline-pathfind_neighbor-{dist}-{nr_agent}-{prob}'].plot(label='Search-trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
                 ax = kmfs[f'Market-pathfind_market-{dist}-{nr_agent}-{prob}'].plot(label='Market-trading', legend=None, linewidth=1)
                 ax.xaxis.set_label_text('')
@@ -244,12 +244,12 @@ if cox_analysis_blobs:
     combined_df = combined_df.drop(["Run_number", 'Num_agents', 'Distribution', 'Move_prob', 'Trading', 'Agent_type', 'Scenario'], axis=1)
 
     print( combined_df)
-    combined_df.to_csv(f"outputs/{date_time_str}/CPH-trading-randomblobs-data.csv")
+    combined_df.to_csv(f"outputs/{date_time_str}/results/CPH-trading-randomblobs-data.csv")
 
     cph = CoxPHFitter(penalizer=0.1)
     cph.fit(combined_df, "T", "E", show_progress=False)
     cph_df = cph.summary
-    cph_df.to_csv(f"outputs/{date_time_str}/CPH-trading-randomblobs-results.csv")
+    cph_df.to_csv(f"outputs/{date_time_str}/results/CPH-trading-randomblobs-results.csv")
 
     plt.figure(figsize=(4, 3))
     cph.plot()
@@ -299,7 +299,7 @@ if cox_analysis_sides:
     combined_df = combined_df.drop(["Run_number", 'Num_agents', 'Distribution', 'Move_prob', 'Trading', 'Agent_type', 'Scenario'], axis=1)
 
     print( combined_df)
-    combined_df.to_csv(f"outputs/{date_time_str}/CPH-trading-Sides-data.csv")
+    combined_df.to_csv(f"outputs/{date_time_str}/results/CPH-trading-Sides-data.csv")
 
     cph = CoxPHFitter(penalizer=0.1)
     cph.fit(combined_df, "T", "E", show_progress=False)
@@ -307,7 +307,7 @@ if cox_analysis_sides:
     print("Summary dataframe:")
     cph_df = cph.summary
     print(cph_df)
-    cph_df.to_csv(f"outputs/{date_time_str}/CPH-trading-Sides-results.csv")
+    cph_df.to_csv(f"outputs/{date_time_str}/results/CPH-trading-Sides-results.csv")
 
     plt.figure(figsize=(4, 3))
     cph.plot()
@@ -363,11 +363,11 @@ if cox_analysis_nr_agents_sides:
         combined_df["Distribution"] = le.fit_transform(combined_df["Distribution"])
         combined_df = combined_df.drop(["Run_number", 'Num_agents', 'Distribution', 'Move_prob', 'Trading', 'Agent_type', 'Scenario'], axis=1)
 
-        combined_df.to_csv(f"outputs/{date_time_str}/CPH-trading-Sides-{n_agents}-data.csv")
+        combined_df.to_csv(f"outputs/{date_time_str}/results/CPH-trading-Sides-{n_agents}-data.csv")
 
         cph = CoxPHFitter(penalizer=0.1)
         cph.fit(combined_df, "T", "E", show_progress=False)
-        cph_df.to_csv(f"outputs/{date_time_str}/CPH-trading-Sides-{n_agents}-results.csv")
+        cph_df.to_csv(f"outputs/{date_time_str}/results/CPH-trading-Sides-{n_agents}-results.csv")
 
         cph.plot()
         plt.title(f'Nr agents = {n_agents}')
@@ -419,13 +419,13 @@ if cox_analysis_uniform:
     combined_df["Distribution"] = le.fit_transform(combined_df["Distribution"])
     combined_df = combined_df.drop(["Run_number", 'Num_agents', 'Distribution', 'Move_prob', 'Trading', 'Agent_type', 'Scenario'], axis=1)
 
-    combined_df.to_csv(f"outputs/{date_time_str}/CPH-trading-uniform-data.csv")
+    combined_df.to_csv(f"outputs/{date_time_str}/results/CPH-trading-uniform-data.csv")
 
     cph = CoxPHFitter(penalizer=0.1)
     cph.fit(combined_df, "T", "E", show_progress=False)
 
     cph_df = cph.summary
-    cph_df.to_csv(f"outputs/{date_time_str}/CPH-trading-uniform-results.csv")
+    cph_df.to_csv(f"outputs/{date_time_str}/results/CPH-trading-uniform-results.csv")
 
     plt.figure(figsize=(4, 3))
     cph.plot()
@@ -474,13 +474,13 @@ if cox_analysis_alldata:
     combined_df["Distribution"] = le.fit_transform(combined_df["Distribution"])
     combined_df = combined_df.drop(["Run_number", 'Trading', 'Agent_type', 'Scenario'], axis=1)
 
-    combined_df.to_csv(f"outputs/{date_time_str}/CPH-trading-alldata-data.csv")
+    combined_df.to_csv(f"outputs/{date_time_str}/results/CPH-trading-alldata-data.csv")
 
     cph = CoxPHFitter(penalizer=0.1)
     cph.fit(combined_df, "T", "E", show_progress=False)
     cph_df = cph.summary
 
-    cph_df.to_csv(f"outputs/{date_time_str}/CPH-trading-results-alldata.csv")
+    cph_df.to_csv(f"outputs/{date_time_str}/results/CPH-trading-results-alldata.csv")
 
     plt.figure(figsize=(4, 3))
     cph.plot()
