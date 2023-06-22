@@ -170,7 +170,8 @@ def runSimulation(arg):
         positions_tree = KDTree(agent_positions)
                 
         alive_times = np.zeros([NUM_AGENTS])
-        
+        alive_times.fill(DURATION)
+
         # Run the simulation
         running = True
 
