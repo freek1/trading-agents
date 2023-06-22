@@ -9,14 +9,14 @@ from pathlib import Path
 
 # If you want to run the cox analyses, you need to have kaplan_plots = True, as it generates the data.
 kaplan_plots = True
-cox_analysis_blobs = False
-cox_analysis_sides = False
-cox_analysis_uniform = False
-cox_analysis_nr_agents_sides = False
-cox_analysis_alldata = False
+cox_analysis_blobs = True
+cox_analysis_sides = True
+cox_analysis_uniform = True
+cox_analysis_nr_agents_sides = True
+cox_analysis_alldata = True
 
 # Set this to the newest generated data datetime.
-date_time_str = '20230621_235820'
+date_time_str = '20230622_002127'
 data_path = Path(os.getcwd())
 
 if kaplan_plots:
