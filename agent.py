@@ -80,6 +80,7 @@ class Agent:
                 self.getSetClosestNeighbor(positions_tree, agents, min(k, len(agent_positions)), view_radius)
                 self.treshold_new_neighbours=50
         else:
+            self.color = ORANGE
             self.behaviour = ""
             self.movement = "random"
             
