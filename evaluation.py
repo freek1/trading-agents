@@ -12,7 +12,7 @@ kaplan_plots = True
 cox_analysis_blobs = True
 cox_analysis_sides = True
 cox_analysis_uniform = True
-cox_analysis_nr_agents_sides = True
+cox_analysis_nr_agents_sides = False
 cox_analysis_alldata = True
 
 # Set this to the newest generated data datetime.
@@ -72,12 +72,12 @@ if kaplan_plots:
 
     # Effect of trading RANDOM single figure
     fig = plt.figure()
-    kmfs[f'Baseline-no_trade-RandomGrid-50-0.8'].plot(label='Non-trading')
-    kmfs[f'Baseline-random-RandomGrid-50-0.8'].plot(label='Random-trading')
-    kmfs[f'Baseline-pathfind_neighbor-RandomGrid-50-0.8'].plot(label='Search-trading')
-    kmfs[f'Market-pathfind_market-RandomGrid-50-0.8'].plot(label='Market-trading')
+    kmfs[f'Baseline-no_trade-RandomGrid-50-1'].plot(label='Non-trading')
+    kmfs[f'Baseline-random-RandomGrid-50-1'].plot(label='Random-trading')
+    kmfs[f'Baseline-pathfind_neighbor-RandomGrid-50-1'].plot(label='Search-trading')
+    kmfs[f'Market-pathfind_market-RandomGrid-50-1'].plot(label='Market-trading')
     plt.suptitle("Mean Kaplan-Meier survival graphs", fontsize=18)
-    plt.title('Effect of trading. Random Blobs, Nr agents = 50, prob. = 0.8', fontsize=14)
+    plt.title('Effect of trading. Random Blobs, Nr agents = 50, prob. = 1', fontsize=14)
     plt.xlabel("Time steps", fontsize=14)
     plt.ylabel("Survival probability", fontsize=14)
     plt.savefig(f"imgs/{date_time_str}/kms-comparison-trading-randomblobs.pdf")
@@ -118,7 +118,7 @@ if kaplan_plots:
     legend_ax.axis('off')
 
     nr_agents = [50, 100] # [50, 100, 200, 300]
-    dists = ['Sides', 'Uniform', 'RandomGrid']
+    dists = ['RandomGrid', 'Sides', 'Uniform']
     probs = [0.5, 0.8, 1]
     i=0
 
@@ -164,7 +164,7 @@ if kaplan_plots:
     legend_ax.axis('off')
 
     nr_agents = [200, 300] # [50, 100, 200, 300]
-    dists = ['Sides', 'Uniform', 'RandomGrid']
+    dists = ['RandomGrid', 'Sides', 'Uniform']
     probs = [0.5, 0.8, 1]
     i=0
 
@@ -205,10 +205,10 @@ if kaplan_plots:
 
 # CPH blobs
 if cox_analysis_blobs:
-    combined_df = pd.concat([cphs['Baseline-no_trade-RandomGrid-50-0.8'],
-                             cphs['Baseline-random-RandomGrid-50-0.8'],
-                             cphs['Baseline-pathfind_neighbor-RandomGrid-50-0.8'],
-                             cphs['Market-pathfind_market-RandomGrid-50-0.8'],
+    combined_df = pd.concat([cphs['Baseline-no_trade-RandomGrid-50-1'],
+                             cphs['Baseline-random-RandomGrid-50-1'],
+                             cphs['Baseline-pathfind_neighbor-RandomGrid-50-1'],
+                             cphs['Market-pathfind_market-RandomGrid-50-1'],
     ])
 
     
@@ -258,10 +258,10 @@ if cox_analysis_blobs:
 
 # CPH sides
 if cox_analysis_sides:
-    combined_df = pd.concat([cphs[f'Baseline-no_trade-Sides-50-1'],
-                             cphs[f'Baseline-random-Sides-50-1'],
-                             cphs[f'Baseline-pathfind_neighbor-Sides-50-1'],
-                             cphs[f'Market-pathfind_market-Sides-50-1'],
+    combined_df = pd.concat([cphs[f'Baseline-no_trade-Sides-50-0.8'],
+                             cphs[f'Baseline-random-Sides-50-0.8'],
+                             cphs[f'Baseline-pathfind_neighbor-Sides-50-0.8'],
+                             cphs[f'Market-pathfind_market-Sides-50-0.8'],
     ])
 
     
