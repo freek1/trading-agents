@@ -59,14 +59,11 @@ if kaplan_plots:
 
         for i, file_path in enumerate(files):
             data_for_CPH = pd.read_csv(file_path)
-            
-            data_for_CPH_copy = data_for_CPH.copy()
 
-            
-            datakf = data_for_CPH_copy[list('TE')]
+            datakf = data_for_CPH[list('TE')]
             
             mean_survival_plots = pd.concat([mean_survival_plots, datakf])
-            CPH_data = pd.concat([CPH_data, data_for_CPH_copy])
+            CPH_data = pd.concat([CPH_data, data_for_CPH])
 
         kmf = KaplanMeierFitter(label=group_key)
         cphs[group_key] = CPH_data

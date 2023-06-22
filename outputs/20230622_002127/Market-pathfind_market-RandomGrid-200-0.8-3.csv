@@ -43,7 +43,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 389.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 235.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 364.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
-0.0,0.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
+1000.0,0.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 302.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 405.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 352.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
@@ -97,7 +97,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 331.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 290.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 217.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
-0.0,0.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
+1000.0,0.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 277.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 324.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 234.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
@@ -143,7 +143,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 376.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 292.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 237.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
-0.0,0.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
+1000.0,0.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 289.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 281.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3
 312.0,1.0,Market,pathfind_market,RandomGrid,200,True,0.8,3

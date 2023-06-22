@@ -1,5 +1,5 @@
 T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
-0.0,0.0,Baseline,random,Sides,100,True,1,4
+1000.0,0.0,Baseline,random,Sides,100,True,1,4
 137.0,1.0,Baseline,random,Sides,100,True,1,4
 194.0,1.0,Baseline,random,Sides,100,True,1,4
 155.0,1.0,Baseline,random,Sides,100,True,1,4
@@ -53,7 +53,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 157.0,1.0,Baseline,random,Sides,100,True,1,4
 230.0,1.0,Baseline,random,Sides,100,True,1,4
 172.0,1.0,Baseline,random,Sides,100,True,1,4
-0.0,0.0,Baseline,random,Sides,100,True,1,4
+1000.0,0.0,Baseline,random,Sides,100,True,1,4
 185.0,1.0,Baseline,random,Sides,100,True,1,4
 167.0,1.0,Baseline,random,Sides,100,True,1,4
 159.0,1.0,Baseline,random,Sides,100,True,1,4

@@ -4,7 +4,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 302.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 275.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 249.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 269.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 198.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 178.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
@@ -62,7 +62,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 258.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 314.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 190.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 189.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 350.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 244.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
@@ -94,7 +94,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 234.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 129.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 149.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 414.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 248.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 294.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
@@ -108,7 +108,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 260.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 297.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 430.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 133.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 407.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 216.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
@@ -142,7 +142,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 174.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 185.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 335.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 177.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 260.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 181.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
@@ -155,7 +155,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 538.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 215.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 393.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 180.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 307.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 257.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
@@ -164,7 +164,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 201.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 171.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 190.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 295.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 220.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 262.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
@@ -174,13 +174,13 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 298.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 287.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 256.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 309.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 424.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 244.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 191.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 257.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 271.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 273.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 251.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
@@ -226,7 +226,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 209.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 341.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 206.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 561.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 219.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 247.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
@@ -271,7 +271,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 203.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 298.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 313.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 220.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 314.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 777.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
@@ -286,7 +286,7 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 286.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 185.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 231.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 208.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 177.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 326.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
@@ -297,5 +297,5 @@ T,E,Scenario,Agent_type,Distribution,Num_agents,Trading,Move_prob,Run_number
 261.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 208.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
 362.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
-0.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
+1000.0,0.0,Baseline,random,RandomGrid,300,True,0.5,5
 188.0,1.0,Baseline,random,RandomGrid,300,True,0.5,5
