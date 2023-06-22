@@ -61,7 +61,7 @@ if kaplan_plots:
             data_for_CPH = pd.read_csv(file_path)
             
             data_for_CPH_copy = data_for_CPH.copy()
-            data_for_CPH_copy.loc[data_for_CPH_copy['T'] == 1000, 'E'] = 0 # post hoc fix if the last timestep is used as time of death
+
             
             datakf = data_for_CPH_copy[list('TE')]
             
