@@ -5,27 +5,27 @@ import math
 import random
 from sklearn.neighbors import KDTree
 
-# Set up the grid
-CELL_SIZE = 20
-GRID_WIDTH = 40 
-GRID_HEIGHT = 40
+# set up the grid
+c_el_l_s_iz_e = 20
+g_ri_d_w_id_th = 40 
+g_ri_d_h_ei_gh_t = 40
 
 def get_grid_params():
-    ''' Returns the size of the grid
-    Input: 
+    ''' returns the size of the grid
+    input: 
         None
-    Output:
+    output:
         tuple, (width, height)
     '''
-    return GRID_WIDTH, GRID_HEIGHT, CELL_SIZE
+    return g_ri_d_w_id_th, g_ri_d_h_ei_gh_t, c_el_l_s_iz_e
 
 def draw_rect_alpha(surface, color, rect):
-    ''' Draws a rectangle with an alpha channel
-    Input: 
+    ''' draws a rectangle with an alpha channel
+    input: 
         surface: object
-        color: tuple, RGB
+        color: tuple, r_gb
         rect: tuple, (x, y, w, h)
-    Output:
+    output:
         None
     '''
     shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
@@ -33,15 +33,15 @@ def draw_rect_alpha(surface, color, rect):
     surface.blit(shape_surf, rect)
 
 def choose_resource(agent:Agent, resources, gather_amount):
-    ''' Returns resource based on which resource is available
-    Input: 
+    ''' returns resource based on which resource is available
+    input: 
         agent: object
         resources: dict
-    Output:
+    output:
         chosen_resource: string, name of chosen resource
     '''
-    x, y = agent.getPos()
-    preferred, ratio = agent.preferredResource()
+    x, y = agent.get_pos()
+    preferred, ratio = agent.preferred_resource()
     if resources[preferred][x][y] >= gather_amount:
         return preferred
     elif resources[other_resource(preferred)][x][y] >= gather_amount:
@@ -51,70 +51,70 @@ def choose_resource(agent:Agent, resources, gather_amount):
     return preferred
 
 def other_resource(resource: str):
-    # Return the opposing resource name
+    # return the opposing resource name
     if resource == 'wood':
         return 'food'
     return 'wood'
 
 def take_resource(agent: Agent, chosen_resource, resources, gather_amount):
-    ''' Takes a resource from the chosen resource
-    Input: 
+    ''' takes a resource from the chosen resource
+    input: 
         agent: object
         chosen_resource: string, name of chosen resource
         resources: dict
-    Output:
+    output:
         None
     '''
-    x, y = agent.getPos()
+    x, y = agent.get_pos()
     gathered = min(resources[chosen_resource][x][y], gather_amount)
     resources[chosen_resource][x][y] -= gathered
-    agent.gatherResource(chosen_resource, gathered) 
+    agent.gather_resource(chosen_resource, gathered) 
 
 
 def able_to_take_resource(agent, chosen_resource, resources):
-    ''' Checks if the agent is able to take a resource
-    Input: 
+    ''' checks if the agent is able to take a resource
+    input: 
         agent: object
         chosen_resource: string, name of chosen resource
         resources: dict
-    Output:
+    output:
         bool, True if able to take resource, False if not
     '''
     if chosen_resource == None:
         return False
-    x, y = agent.getPos()
-    return agent.getCapacity(chosen_resource) > agent.getCurrentStock(chosen_resource) and resources[chosen_resource][x][y] >= 1
+    x, y = agent.get_pos()
+    return agent.get_capacity(chosen_resource) > agent.get_current_stock(chosen_resource) and resources[chosen_resource][x][y] >= 1
 
 def find_nearest_resource(agent, resource, resources):
-    x_agent, y_agent = agent.getPos()
+    x_agent, y_agent = agent.get_pos()
     closest_loc = (-np.inf, -np.inf)
     closest_dist = np.inf
-    for y in range(GRID_HEIGHT):
-        for x in range(GRID_WIDTH):
+    for y in range(g_ri_d_h_ei_gh_t):
+        for x in range(g_ri_d_w_id_th):
             if resources[resource][x][y]>=1:
                 if math.dist((x_agent, y_agent), (x, y)) < closest_dist:
                     closest_dist = math.dist((x_agent, y_agent), (x, y))
                     closest_loc = x, y
     return closest_loc
 
-def cellAvailable(x, y, agents):
+def cell_available(x, y, agents):
     """
-    Returns True and agent if occupied
+    returns True and agent if occupied
     """
     for agent in agents:
-        if agent.isAt(x, y):
+        if agent.is_at(x, y):
             return (False, agent)
     return (True, None)
 
-def moveAgent(preferred_direction, agent, agents):
+def move_agent(preferred_direction, agent, agents):
     # move agent to preferred direction if possible, otherwise move randomly
-    x, y = agent.getPos()
+    x, y = agent.get_pos()
     dx, dy = preferred_direction
     # check if preffered direction is possible 
-    if 0 <= x + dx < GRID_WIDTH and  0 <= y + dy < GRID_HEIGHT:
+    if 0 <= x + dx < g_ri_d_w_id_th and  0 <= y + dy < g_ri_d_h_ei_gh_t:
         new_x = x + dx
         new_y = y + dy
-        if cellAvailable(new_x, new_y, agents)[0]:
+        if cell_available(new_x, new_y, agents)[0]:
             agent.move(dx, dy)
         else:
             found = False # available grid cell found
@@ -123,19 +123,19 @@ def moveAgent(preferred_direction, agent, agents):
             while not found and possible_moves:
                 dx,dy = random.choice(possible_moves)
                 possible_moves.remove((dx, dy))
-                if 0 <= x+dx < GRID_WIDTH and 0 <= y+dy < GRID_HEIGHT:
+                if 0 <= x+dx < g_ri_d_w_id_th and 0 <= y+dy < g_ri_d_h_ei_gh_t:
                     new_x = x + dx
                     new_y = y + dy
-                    if cellAvailable(new_x, new_y, agents)[0]:
+                    if cell_available(new_x, new_y, agents)[0]:
                         agent.move(dx, dy)
                         found = True
 
-def findClosestMarketPos(agent: Agent, market):
-    x, y = agent.getPos()
-    idx_market_true = np.argwhere(market)
+def find_closest_market_pos(agent: Agent, market):
+    x, y = agent.get_pos()
+    idx_market_True = np.argwhere(market)
     smallest_distance = np.inf
     x_cmp, y_cmp = 0, 0
-    for x_market, y_market in idx_market_true:
+    for x_market, y_market in idx_market_True:
         distance = math.dist([x_market, y_market], [x, y])
         if distance < smallest_distance:
             smallest_distance = distance
@@ -143,14 +143,14 @@ def findClosestMarketPos(agent: Agent, market):
     return x_cmp, y_cmp
 
 def in_market(agent: Agent, market):
-    x, y = agent.getPos()
+    x, y = agent.get_pos()
     return market[x][y]
 
-def getSetClosestNeighbor(positions_tree, agents, agent:Agent, k, view_radius):
-    # Update agent position for the KD-tree
-    x, y = agent.getPos()
+def get_set_closest_neighbor(positions_tree, agents, agent:Agent, k, view_radius):
+    # update agent position for the k_d-tree
+    x, y = agent.get_pos()
     
-    # Distance and indices of 5 nearest neighbors within view radius
+    # distance and indices of 5 nearest neighbors within view radius
     view_radius = 20
     dist, idx = positions_tree.query([[x, y]], k=k)
     for i, d in enumerate(dist[0]):
@@ -164,4 +164,4 @@ def getSetClosestNeighbor(positions_tree, agents, agent:Agent, k, view_radius):
         for ids in idx:
             if agent != agents[ids]:
                 neighboring_agents.append(agents[ids])
-        agent.setNearestNeighbors(neighboring_agents)
+        agent.set_nearest_neighbors(neighboring_agents)
