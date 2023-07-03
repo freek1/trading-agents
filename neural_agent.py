@@ -3,7 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # Input size = amt of resources 
-input_size = 2
+# (resA, resB, [5 closest neighbors pos])
+input_size = 7
 # Output size = coordinates of goal position
 output_size = 2
 
@@ -28,3 +29,14 @@ class NeuralAgent(nn.Module):
 
 net = NeuralAgent()
 print(net)
+
+params = list(net.parameters())
+print(len(params))
+print(params[0].size())
+
+input = torch.randn(1, input_size)
+input = torch.tensor([[1., 1., .1, .3, .4, .2, .1]])
+out = net(input)
+print(out)
+
+
