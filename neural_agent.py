@@ -2,9 +2,15 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+device = torch.device('cuda:0')
+print(device)
+
 # Input size = amt of resources 
-# (resA, resB, [5 closest neighbors pos])
-input_size = 7
+# (resA, resB, [3 closest neighbors pos x, y])
+input_size = 8
+
+[resA, resB, x1, y1, x2, y2, x3, y3] = [[1., 1., .1, .3, .4, .2, .1]]
+
 # Output size = coordinates of goal position
 output_size = 2
 
@@ -34,8 +40,9 @@ params = list(net.parameters())
 print(len(params))
 print(params[0].size())
 
+input = torch.tensor([resA, resB, x1, y1, x2, y2, x3, y3])
 input = torch.randn(1, input_size)
-input = torch.tensor([[1., 1., .1, .3, .4, .2, .1]])
+input = torch.tensor()
 out = net(input)
 print(out)
 
